@@ -2,7 +2,7 @@ package canchapro.principal;
 
 import canchapro.ContextoAplicacion;
 // [CANCHAS] import canchapro.canchas.PnlCanchas;
-// [CLIENTES]import canchapro.clientes.PnlClientes;
+import canchapro.clientes.PnlClientes;
 import canchapro.configuracion.PnlConfiguracion;
 // [DASHBOARD] import canchapro.dashboard.Indicador;
 // [DASHBOARD] import canchapro.dashboard.PnlDashboard;
@@ -47,6 +47,7 @@ import javax.swing.SwingConstants;
  * Ventana principal: menú lateral con los módulos permitidos para el
  * usuario y un panel central donde se muestra el módulo seleccionado.
  */
+// POO - Herencia: la ventana principal extiende JFrame de Swing.
 public class FrmPrincipal extends javax.swing.JFrame {
 
     private static final Color COLOR_MENU = new Color(31, 41, 55);
@@ -56,8 +57,10 @@ public class FrmPrincipal extends javax.swing.JFrame {
     /** Cada minuto se actualizan los estados de las reservas según la hora. */
     private static final int INTERVALO_ESTADOS_MS = 60_000;
 
+    // POO - Relaciones: la ventana usa el contexto (servicios) y la sesión del usuario conectado.
     private final ContextoAplicacion contexto;
     private final Sesion sesion;
+    // POO - Colecciones: mapa módulo -> pantalla ya creada (cada pantalla se crea una sola vez).
     private final Map<Modulo, JComponent> paneles = new EnumMap<>(Modulo.class);
     private final Map<Modulo, JButton> botones = new EnumMap<>(Modulo.class);
     // [RESERVAS_PAGOS] private final Timer temporizadorEstados;
@@ -122,7 +125,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
     private void configuracionCambiada() {
         actualizarTitulo();
         descartarPanel(Modulo.DASHBOARD);
-        descartarPanel(Modulo.REPORTES);
+        //descartarPanel(Modulo.REPORTES);
         Modulo actual = moduloActual;
         moduloActual = null;
         construirMenu(actual);
@@ -160,6 +163,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
      * está habilitado en la configuración (por ejemplo, la Tienda).
      */
     private boolean esVisible(Modulo modulo) {
+        // POO - Polimorfismo: puedeAcceder() responde distinto si el usuario es Administrador o Empleado.
         return sesion.puedeAcceder(modulo) && contexto.getConfiguracion().estaHabilitado(modulo);
     }
 
@@ -215,6 +219,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
             JComponent panel = crearPanel(modulo);
             paneles.put(modulo, panel);
             pnlContenido.add(panel, modulo.name());
+        // POO - Polimorfismo (interfaz): cualquier pantalla que implemente Refrescable se actualiza igual.
         } else if (modulo != moduloActual && paneles.get(modulo) instanceof Refrescable refrescable) {
             // Los datos pudieron cambiar en otro módulo.
             refrescable.refrescar();
@@ -224,6 +229,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
         botones.forEach((m, boton) -> boton.setBackground(m == modulo ? COLOR_SELECCIONADO : COLOR_MENU));
     }
 
+    // POO - Polimorfismo: todas las pantallas se tratan como JComponent, sin importar su clase concreta.
     private JComponent crearPanel(Modulo modulo) {
         return switch (modulo) {
             // [DASHBOARD] case DASHBOARD -> new PnlDashboard(contexto.getDashboardServicio(), this::irA, this::esVisible,
@@ -231,7 +237,8 @@ public class FrmPrincipal extends javax.swing.JFrame {
             // [TIENDA] case TIENDA -> new PnlModuloTienda(
                     // [TIENDA] new PnlVentas(contexto.getTiendaServicio(), contexto.getClienteServicio(), sesion),
                     // [TIENDA] new PnlProductos(contexto.getTiendaServicio()));
-            // [CLIENTES] case CLIENTES -> new PnlClientes(contexto.getClienteServicio());
+            case CLIENTES -> new PnlClientes(contexto.getClienteServicio());
+            
             // [DISPONIBILIDAD] case DISPONIBILIDAD -> crearPanelDisponibilidad();
             // [RESERVAS_PAGOS] case RESERVAS -> new PnlModuloReservas(
                     // [RESERVAS_PAGOS] new PnlNuevaReserva(contexto.getReservaServicio(), contexto.getDisponibilidadServicio(),
@@ -246,7 +253,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
             // [TARIFAS] case TARIFAS -> new PnlTarifas(contexto.getTarifaServicio());
             // [SERVICIOS] case SERVICIOS -> new PnlServicios(contexto.getServicioAdicionalServicio());
             case USUARIOS -> new PnlUsuarios(contexto.getUsuarioServicio(), sesion);
-            case CONFIGURACION -> new PnlConfiguracion(contexto.getConfiguracionServicio());
+            //case CONFIGURACION -> new PnlConfiguracion(contexto.getConfiguracionServicio());            
             default -> new PnlEnConstruccion(modulo.getNombreVisible(),
                     "Este módulo se implementará en una próxima tarea.");
         };

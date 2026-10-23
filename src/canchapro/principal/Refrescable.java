@@ -5,6 +5,7 @@ package canchapro.principal;
  * refresca al volver a mostrarla (los datos pudieron cambiar en otro
  * módulo) y cuando las reservas cambian de estado automáticamente.
  */
+// POO - Polimorfismo (interfaz): contrato que cumplen las pantallas que pueden volver a leer sus datos.
 public interface Refrescable {
 
     void refrescar();

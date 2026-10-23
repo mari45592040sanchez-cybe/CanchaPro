@@ -1,5 +1,6 @@
 package canchapro.usuarios;
 
+// POO - Encapsulamiento: enumeración con su propio atributo (nombre visible) y comportamiento (toString).
 public enum Rol {
 
     ADMINISTRADOR("Administrador"),

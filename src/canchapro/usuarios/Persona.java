@@ -7,8 +7,11 @@ import canchapro.util.excepciones.DatosInvalidosException;
 /**
  * Datos comunes de cualquier persona del sistema (clientes y usuarios).
  */
+// POO - Herencia: clase base (abstracta) de Cliente y Usuario; contiene los datos comunes de una persona.
+// POO - Polimorfismo: implementa la interfaz Identificable (toda entidad tiene un código).
 public abstract class Persona implements Identificable {
 
+    // POO - Encapsulamiento: atributos privados; solo se cambian con los setters, que validan los datos.
     private final String codigo;
     private String nombre;
     private String telefono;
@@ -23,6 +26,7 @@ public abstract class Persona implements Identificable {
 
     // --- Validaciones reutilizables (se usan antes de modificar un objeto) ---
 
+    // POO - Reutilización: validaciones estáticas que usan Cliente, Usuario y los servicios.
     public static String validarNombre(String nombre) {
         return Validador.texto(nombre, 3, 80, "El nombre");
     }
@@ -68,6 +72,7 @@ public abstract class Persona implements Identificable {
         return nombre;
     }
 
+    // POO - Encapsulamiento: el setter valida antes de asignar; nunca queda un nombre inválido.
     public final void setNombre(String nombre) {
         this.nombre = validarNombre(nombre);
     }
@@ -85,6 +90,7 @@ public abstract class Persona implements Identificable {
      * Por defecto es opcional; {@code Cliente} lo exige porque es el dato
      * principal para contactarlo y para evitar clientes duplicados.
      */
+    // POO - Polimorfismo: las subclases pueden sobrescribirlo (Cliente devuelve true).
     protected boolean telefonoObligatorio() {
         return false;
     }

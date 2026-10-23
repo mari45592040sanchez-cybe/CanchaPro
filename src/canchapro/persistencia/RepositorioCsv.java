@@ -5,30 +5,35 @@ import canchapro.util.excepciones.CanchaProException;
 import canchapro.util.excepciones.EntidadNoEncontradaException;
 import canchapro.util.excepciones.ReglaNegocioException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Base genérica para guardar una colección de entidades en un archivo CSV.
- * Mantiene los objetos en memoria (indexados por código) y los escribe al
- * archivo cada vez que se llama a {@link #guardar()}.
+ * Mantiene los objetos en memoria en un arreglo y los escribe al archivo
+ * cada vez que se llama a {@link #guardar()}.
  *
  * Cada repositorio concreto indica el formato de su archivo implementando
- * {@link #encabezado()}, {@link #cantidadCampos()}, {@link #desdeCsv(String[])}
- * y {@link #aCsv(Identificable)}.
+ * {@link #encabezado()}, {@link #cantidadCampos()}, {@link #desdeCsv(String[])},
+ * {@link #aCsv(Identificable)} y {@link #crearArreglo(int)}.
  *
  * @param <T> tipo de entidad
  */
+// POO - Herencia / Reutilización: clase abstracta que heredan ClienteRepositorio y UsuarioRepositorio;
+// la lógica de cargar, guardar, agregar y buscar se escribe una sola vez y la reutilizan todos.
+// POO - Polimorfismo: cada subclase implementa a su manera los métodos abstractos (formato de su archivo).
+// POO - Responsabilidad: esta clase solo guarda y recupera datos; no valida reglas de negocio.
 public abstract class RepositorioCsv<T extends Identificable> {
 
+    private static final int CAPACIDAD_INICIAL = 10;
+
+    // POO - Encapsulamiento: los atributos son privados; solo se modifican mediante los métodos públicos.
     private final Path archivo;
-    private final Map<String, T> datos = new LinkedHashMap<>();
-    private final List<ErrorCarga> erroresCarga = new ArrayList<>();
+    // POO - Colecciones: arreglo de objetos + contador de posiciones ocupadas.
+    // Si el arreglo se llena, se crea uno del doble de tamaño y se copian los elementos.
+    private T[] datos;
+    private int cantidad;
+    private ErrorCarga[] erroresCarga = new ErrorCarga[CAPACIDAD_INICIAL];
+    private int cantidadErrores;
 
     protected RepositorioCsv(Path archivo) {
         this.archivo = archivo;
@@ -49,18 +54,27 @@ public abstract class RepositorioCsv<T extends Identificable> {
     protected abstract String aCsv(T objeto);
 
     /**
+     * Crea un arreglo vacío del tipo concreto, por ejemplo {@code new Cliente[tamanio]}.
+     * Es necesario porque en Java no se puede escribir {@code new T[tamanio]}.
+     */
+    // POO - Polimorfismo: cada repositorio crea el arreglo de su propio tipo de entidad.
+    protected abstract T[] crearArreglo(int tamanio);
+
+    /**
      * Lee el archivo y reconstruye los objetos. Las líneas con errores se
      * omiten y quedan registradas en {@link #getErroresCarga()}; el resto
      * de la información se carga normalmente.
      */
     public void cargar() {
-        datos.clear();
-        erroresCarga.clear();
+        datos = crearArreglo(CAPACIDAD_INICIAL);
+        cantidad = 0;
+        erroresCarga = new ErrorCarga[CAPACIDAD_INICIAL];
+        cantidadErrores = 0;
         String nombre = archivo.getFileName().toString();
         ContenidoCsv contenido = ArchivoCsv.leer(archivo, encabezado());
 
         if (!contenido.encabezado().isEmpty() && !contenido.encabezado().equals(encabezado())) {
-            erroresCarga.add(new ErrorCarga(nombre, 1, contenido.encabezado(),
+            agregarError(new ErrorCarga(nombre, 1, contenido.encabezado(),
                     "encabezado distinto al esperado (" + encabezado() + ")"));
         }
 
@@ -72,14 +86,14 @@ public abstract class RepositorioCsv<T extends Identificable> {
                             + " campos y se encontraron " + campos.length);
                 }
                 T objeto = desdeCsv(campos);
-                if (datos.containsKey(objeto.getCodigo())) {
+                if (existe(objeto.getCodigo())) {
                     throw new IllegalArgumentException("código duplicado " + objeto.getCodigo());
                 }
-                datos.put(objeto.getCodigo(), objeto);
+                agregarAlFinal(objeto);
             } catch (RuntimeException e) {
                 // Cubre campos inválidos, fechas/números mal escritos, enums
                 // desconocidos y referencias a registros inexistentes.
-                erroresCarga.add(new ErrorCarga(nombre, linea.numero(), linea.texto(), describir(e)));
+                agregarError(new ErrorCarga(nombre, linea.numero(), linea.texto(), describir(e)));
             }
         }
         despuesDeCargar();
@@ -90,6 +104,7 @@ public abstract class RepositorioCsv<T extends Identificable> {
      * al recargar tras un error de escritura). Las subclases lo usan para
      * reconstruir relaciones con otros repositorios.
      */
+    // POO - Polimorfismo: las subclases pueden sobrescribir este método (@Override) si lo necesitan.
     protected void despuesDeCargar() {
     }
 
@@ -99,9 +114,9 @@ public abstract class RepositorioCsv<T extends Identificable> {
      * que no se guardaron, y se relanza el error.
      */
     public void guardar() {
-        List<String> lineas = new ArrayList<>(datos.size());
-        for (T objeto : datos.values()) {
-            lineas.add(aCsv(objeto));
+        String[] lineas = new String[cantidad];
+        for (int i = 0; i < cantidad; i++) {
+            lineas[i] = aCsv(datos[i]);
         }
         try {
             ArchivoCsv.escribir(archivo, encabezado(), lineas);
@@ -116,45 +131,109 @@ public abstract class RepositorioCsv<T extends Identificable> {
     }
 
     public void agregar(T objeto) {
-        if (datos.containsKey(objeto.getCodigo())) {
+        if (existe(objeto.getCodigo())) {
             throw new ReglaNegocioException("Ya existe un registro con el código " + objeto.getCodigo());
         }
-        datos.put(objeto.getCodigo(), objeto);
+        agregarAlFinal(objeto);
     }
 
     public void actualizar(T objeto) {
-        if (!datos.containsKey(objeto.getCodigo())) {
+        int indice = indiceDe(objeto.getCodigo());
+        if (indice < 0) {
             throw new EntidadNoEncontradaException("No existe un registro con el código " + objeto.getCodigo());
         }
-        datos.put(objeto.getCodigo(), objeto);
+        datos[indice] = objeto;
     }
 
     public Optional<T> buscar(String codigo) {
-        return Optional.ofNullable(datos.get(codigo));
+        int indice = indiceDe(codigo);
+        return indice < 0 ? Optional.empty() : Optional.of(datos[indice]);
     }
 
     public boolean existe(String codigo) {
-        return datos.containsKey(codigo);
+        return indiceDe(codigo) >= 0;
     }
 
-    public List<T> listar() {
-        return List.copyOf(datos.values());
+    /**
+     * Copia de los objetos guardados, del tamaño exacto. Se devuelve una
+     * copia para que nadie pueda modificar el arreglo interno desde afuera.
+     */
+    // POO - Encapsulamiento: se entrega una copia, no el arreglo interno.
+    public T[] listar() {
+        T[] copia = crearArreglo(cantidad);
+        for (int i = 0; i < cantidad; i++) {
+            copia[i] = datos[i];
+        }
+        return copia;
+    }
+
+    public int getCantidad() {
+        return cantidad;
     }
 
     public boolean estaVacio() {
-        return datos.isEmpty();
+        return cantidad == 0;
     }
 
-    public Set<String> codigos() {
-        return Collections.unmodifiableSet(datos.keySet());
+    /** Códigos de todos los registros (se usa para generar el siguiente código). */
+    public String[] codigos() {
+        String[] codigos = new String[cantidad];
+        for (int i = 0; i < cantidad; i++) {
+            codigos[i] = datos[i].getCodigo();
+        }
+        return codigos;
     }
 
-    public List<ErrorCarga> getErroresCarga() {
-        return List.copyOf(erroresCarga);
+    public ErrorCarga[] getErroresCarga() {
+        ErrorCarga[] copia = new ErrorCarga[cantidadErrores];
+        for (int i = 0; i < cantidadErrores; i++) {
+            copia[i] = erroresCarga[i];
+        }
+        return copia;
     }
 
     public Path getArchivo() {
         return archivo;
+    }
+
+    // --- Manejo del arreglo ---
+
+    /** Posición del objeto con ese código, o -1 si no existe (búsqueda secuencial). */
+    private int indiceDe(String codigo) {
+        for (int i = 0; i < cantidad; i++) {
+            if (datos[i].getCodigo().equals(codigo)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void agregarAlFinal(T objeto) {
+        if (datos == null) {
+            datos = crearArreglo(CAPACIDAD_INICIAL);
+        }
+        if (cantidad == datos.length) {
+            // Arreglo lleno: se crea uno del doble de tamaño y se copian los elementos.
+            T[] mayor = crearArreglo(datos.length * 2);
+            for (int i = 0; i < cantidad; i++) {
+                mayor[i] = datos[i];
+            }
+            datos = mayor;
+        }
+        datos[cantidad] = objeto;
+        cantidad++;
+    }
+
+    private void agregarError(ErrorCarga error) {
+        if (cantidadErrores == erroresCarga.length) {
+            ErrorCarga[] mayor = new ErrorCarga[erroresCarga.length * 2];
+            for (int i = 0; i < cantidadErrores; i++) {
+                mayor[i] = erroresCarga[i];
+            }
+            erroresCarga = mayor;
+        }
+        erroresCarga[cantidadErrores] = error;
+        cantidadErrores++;
     }
 
     private static String describir(RuntimeException e) {

@@ -1,0 +1,2 @@
+codigo;rol;nombre;telefono;correo;username;passwordHash;salt;activo;debeCambiarPassword;modulos
+USR-001;ADMINISTRADOR;Administrador;;;admin;YC8vu3RdS24ZwBwCVxagAAzS/r9fvZhublqI89ZfsYE=;0NcLHDvkjPQonCi0ihsUOQ==;true;false;

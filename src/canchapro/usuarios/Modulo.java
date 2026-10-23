@@ -4,20 +4,21 @@ package canchapro.usuarios;
  * Módulos (pantallas) del sistema. El orden de declaración es el orden en
  * que aparecen en el menú principal.
  */
+// POO - Encapsulamiento: cada módulo guarda su nombre visible y si es exclusivo del administrador.
 public enum Modulo {
 
     DASHBOARD("Inicio", false),
-    DISPONIBILIDAD("Disponibilidad", false),
-    RESERVAS("Reservas", false),
-    PAGOS("Pagos", false),
+    //DISPONIBILIDAD("Disponibilidad", false),
+    //RESERVAS("Reservas", false),
+    //PAGOS("Pagos", false),
     CLIENTES("Clientes", false),
-    CANCHAS("Canchas", false),
-    TARIFAS("Tarifas", false),
-    SERVICIOS("Servicios adicionales", false),
-    REPORTES("Reportes", false),
-    TIENDA("Tienda / Cafetería", false),
-    USUARIOS("Usuarios", true),
-    CONFIGURACION("Configuración", true);
+    //CANCHAS("Canchas", false),
+    //TARIFAS("Tarifas", false),
+    //SERVICIOS("Servicios adicionales", false),
+    //REPORTES("Reportes", false),    
+    //TIENDA("Tienda / Cafetería", false),
+    USUARIOS("Usuarios", true);
+    //CONFIGURACION("Configuración", true);
 
     private final String nombreVisible;
     private final boolean soloAdministrador;

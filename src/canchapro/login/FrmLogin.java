@@ -9,6 +9,7 @@ import javax.swing.JOptionPane;
 /**
  * Pantalla de inicio de sesión.
  */
+// POO - Herencia: la ventana de inicio de sesión extiende JFrame de Swing.
 public class FrmLogin extends javax.swing.JFrame {
 
     private final ContextoAplicacion contexto;
@@ -74,7 +75,7 @@ public class FrmLogin extends javax.swing.JFrame {
         setTitle("CanchaPro - Iniciar sesión");
         setResizable(false);
 
-        pnlEncabezado.setBackground(new java.awt.Color(0, 204, 204));
+        pnlEncabezado.setBackground(new java.awt.Color(22, 101, 52));
         pnlEncabezado.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 30, 20, 30));
         pnlEncabezado.setLayout(new java.awt.GridBagLayout());
 

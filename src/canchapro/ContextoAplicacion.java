@@ -2,8 +2,8 @@ package canchapro;
 
 // [CANCHAS] import canchapro.canchas.CanchaRepositorio;
 // [CANCHAS] import canchapro.canchas.CanchaServicio;
-// [CLIENTES] import canchapro.clientes.ClienteRepositorio;
-// [CLIENTES] import canchapro.clientes.ClienteServicio;
+import canchapro.clientes.ClienteRepositorio;
+import canchapro.clientes.ClienteServicio;
 import canchapro.configuracion.Configuracion;
 import canchapro.configuracion.ConfiguracionRepositorio;
 import canchapro.configuracion.ConfiguracionServicio;
@@ -51,6 +51,8 @@ import java.time.Clock;
  * configuración → carpeta de datos → carga de archivos (en orden) →
  * bitácora de errores → servicios → datos iniciales → estados de reservas.
  */
+// POO - Relaciones (composición): crea y conecta todos los repositorios y servicios del sistema.
+// Cada servicio recibe por constructor los objetos que necesita (no se usan variables globales).
 public class ContextoAplicacion {
 
     private final ConfiguracionRepositorio configuracionRepositorio;
@@ -62,7 +64,7 @@ public class ContextoAplicacion {
 
     private final UsuarioServicio usuarioServicio;
     private final LoginServicio loginServicio;
-    // [CLIENTES] private final ClienteServicio clienteServicio;
+    private final ClienteServicio clienteServicio;
     // [CANCHAS] private final CanchaServicio canchaServicio;
     // [TARIFAS] private final TarifaServicio tarifaServicio;
     // [SERVICIOS] private final ServicioAdicionalServicio servicioAdicionalServicio;
@@ -91,7 +93,7 @@ public class ContextoAplicacion {
         // 2. Repositorios. Cada uno recibe los repositorios de los que depende
         //    y se cargan en ese mismo orden.
         UsuarioRepositorio usuarioRepositorio = new UsuarioRepositorio(carpetaDatos);
-        // [CLIENTES] ClienteRepositorio clienteRepositorio = new ClienteRepositorio(carpetaDatos);
+        ClienteRepositorio clienteRepositorio = new ClienteRepositorio(carpetaDatos);
         // [CANCHAS] CanchaRepositorio canchaRepositorio = new CanchaRepositorio(carpetaDatos);
         // [TARIFAS] TarifaRepositorio tarifaRepositorio = new TarifaRepositorio(carpetaDatos);
         // [SERVICIOS] ServicioAdicionalRepositorio servicioAdicionalRepositorio = new ServicioAdicionalRepositorio(carpetaDatos);
@@ -114,7 +116,7 @@ public class ContextoAplicacion {
 
         cargador = new CargadorDatos(carpetaDatos);
         cargador.registrar(usuarioRepositorio);
-        // [CLIENTES] cargador.registrar(clienteRepositorio);
+        cargador.registrar(clienteRepositorio);
         // [CANCHAS] cargador.registrar(canchaRepositorio);
         // [TARIFAS] cargador.registrar(tarifaRepositorio);
         // [SERVICIOS] cargador.registrar(servicioAdicionalRepositorio);
@@ -129,7 +131,7 @@ public class ContextoAplicacion {
         // 3. Servicios
         usuarioServicio = new UsuarioServicio(usuarioRepositorio);
         loginServicio = new LoginServicio(usuarioRepositorio);
-        // [CLIENTES] clienteServicio = new ClienteServicio(clienteRepositorio);
+        clienteServicio = new ClienteServicio(clienteRepositorio);
         // [CANCHAS] canchaServicio = new CanchaServicio(canchaRepositorio);
         // [TARIFAS] tarifaServicio = new TarifaServicio(tarifaRepositorio);
         // [SERVICIOS] servicioAdicionalServicio = new ServicioAdicionalServicio(servicioAdicionalRepositorio);
@@ -217,9 +219,9 @@ public class ContextoAplicacion {
         return loginServicio;
     }
 
-    // [CLIENTES] public ClienteServicio getClienteServicio() {
-        // [CLIENTES] return clienteServicio;
-    // [CLIENTES] }
+    public ClienteServicio getClienteServicio() {
+        return clienteServicio;
+    }
 
     // [CANCHAS] public CanchaServicio getCanchaServicio() {
         // [CANCHAS] return canchaServicio;

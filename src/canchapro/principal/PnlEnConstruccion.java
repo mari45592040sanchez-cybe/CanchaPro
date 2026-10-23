@@ -11,6 +11,7 @@ import javax.swing.JPanel;
  * Panel informativo para módulos que aún no se han implementado o cuando
  * el usuario no tiene módulos asignados.
  */
+// POO - Herencia: extiende JPanel. POO - Reutilización: se usa para cualquier módulo aún no terminado.
 public class PnlEnConstruccion extends JPanel {
 
     public PnlEnConstruccion(String titulo, String mensaje) {

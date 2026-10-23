@@ -3,6 +3,7 @@ package canchapro.usuarios;
 /**
  * El administrador tiene acceso a todos los módulos del sistema.
  */
+// POO - Herencia: Administrador ES UN Usuario (y por lo tanto una Persona).
 public class Administrador extends Usuario {
 
     public Administrador(String codigo, String nombre, String telefono, String correo,
@@ -16,6 +17,7 @@ public class Administrador extends Usuario {
         return Rol.ADMINISTRADOR;
     }
 
+    // POO - Polimorfismo: el administrador puede acceder a todos los módulos.
     @Override
     public boolean puedeAcceder(Modulo modulo) {
         return true;

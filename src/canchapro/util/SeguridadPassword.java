@@ -13,6 +13,7 @@ import java.util.Base64;
  * El salt es aleatorio por usuario, así dos contraseñas iguales producen
  * hashes distintos.
  */
+// POO - Responsabilidad / Encapsulamiento: concentra cómo se protegen las contraseñas (hash + salt).
 public final class SeguridadPassword {
 
     private static final int ITERACIONES = 10_000;

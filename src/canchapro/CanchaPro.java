@@ -5,7 +5,6 @@ import canchapro.persistencia.ErrorCarga;
 import canchapro.persistencia.RegistroErroresCarga;
 import canchapro.usuarios.UsuarioServicio;
 import java.nio.file.Path;
-import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -55,17 +54,19 @@ public class CanchaPro {
         if (!registro.hayErrores()) {
             return;
         }
-        List<ErrorCarga> errores = registro.getErrores();
+        ErrorCarga[] errores = registro.getErrores();
         StringBuilder mensaje = new StringBuilder("Se encontraron ")
-                .append(errores.size()).append(" problema(s) al cargar los datos.\n")
+                .append(errores.length).append(" problema(s) al cargar los datos.\n")
                 .append("Los registros con errores se omitieron; el resto se cargó normalmente.\n\n");
-        errores.stream().limit(MAX_ERRORES_MOSTRADOS).forEach(e -> mensaje.append("• ").append(e).append('\n'));
-        if (errores.size() > MAX_ERRORES_MOSTRADOS) {
-            mensaje.append("… y ").append(errores.size() - MAX_ERRORES_MOSTRADOS).append(" más.\n");
+        for (int i = 0; i < errores.length && i < MAX_ERRORES_MOSTRADOS; i++) {
+            mensaje.append("• ").append(errores[i]).append('\n');
+        }
+        if (errores.length > MAX_ERRORES_MOSTRADOS) {
+            mensaje.append("… y ").append(errores.length - MAX_ERRORES_MOSTRADOS).append(" más.\n");
         }
         mensaje.append("\nDetalle en: ")
                 .append(contexto.getCarpetaDatos().resolve(RegistroErroresCarga.ARCHIVO_LOG));
-        if (!registro.getRespaldos().isEmpty()) {
+        if (registro.getRespaldos().length > 0) {
             mensaje.append("\nCopia de los archivos originales en: ").append(String.join(", ", registro.getRespaldos()));
         }
         JOptionPane.showMessageDialog(null, mensaje.toString(), "Errores al cargar datos", JOptionPane.WARNING_MESSAGE);

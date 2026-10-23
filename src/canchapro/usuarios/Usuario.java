@@ -9,10 +9,13 @@ import java.util.regex.Pattern;
  * Persona que puede iniciar sesión en el sistema.
  * Cada subclase decide a qué módulos tiene acceso (polimorfismo).
  */
+// POO - Herencia: Usuario ES UNA Persona y además puede iniciar sesión.
+// Es abstracta: no se crean objetos Usuario, sino Administrador o Empleado.
 public abstract class Usuario extends Persona {
 
     private static final Pattern FORMATO_USERNAME = Pattern.compile("[A-Za-z0-9._]{4,20}");
 
+    // POO - Encapsulamiento: la contraseña nunca se guarda en texto plano ni se expone; solo hash + salt.
     private String username;
     private String passwordHash;
     private String salt;
@@ -31,6 +34,7 @@ public abstract class Usuario extends Persona {
     }
 
     /** Rol del usuario, usado para guardarlo en archivo y mostrarlo. */
+    // POO - Polimorfismo: métodos abstractos; cada subclase da su propia implementación.
     public abstract Rol getRol();
 
     /** Indica si el usuario puede ver y usar el módulo indicado. */

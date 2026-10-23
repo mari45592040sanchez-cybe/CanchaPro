@@ -16,8 +16,11 @@ import javax.swing.ListSelectionModel;
  * Pantalla del administrador para registrar empleados (u otros
  * administradores) y elegir los módulos que cada empleado podrá ver.
  */
+// POO - Herencia: la pantalla extiende JPanel de Swing.
 public class PnlUsuarios extends javax.swing.JPanel {
 
+    // POO - Relaciones / Responsabilidad: la pantalla usa el servicio para las reglas de negocio;
+    // ella solo muestra datos y responde a los botones.
     private final UsuarioServicio servicio;
     private final Sesion sesion;
     private final UsuarioTableModel modeloTabla = new UsuarioTableModel();

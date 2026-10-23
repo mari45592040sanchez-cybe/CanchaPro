@@ -8,8 +8,10 @@ package canchapro.persistencia;
  * @param contenido texto original de la línea (vacío si no aplica)
  * @param motivo    explicación del problema
  */
+// POO - Encapsulamiento: record inmutable con los datos de un error de carga.
 public record ErrorCarga(String archivo, int linea, String contenido, String motivo) {
 
+    // POO - Polimorfismo: sobrescribe toString() de Object para mostrar el error de forma legible.
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(archivo);

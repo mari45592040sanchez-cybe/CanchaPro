@@ -6,7 +6,6 @@ import canchapro.util.excepciones.CanchaProException;
 import java.awt.Desktop;
 import java.awt.Window;
 import java.io.IOException;
-import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
@@ -15,6 +14,7 @@ import javax.swing.SwingUtilities;
  * Configuración del sistema (solo administrador): parámetros del negocio,
  * módulo Tienda, recarga de archivos y bitácora de errores.
  */
+// POO - Herencia: la pantalla extiende JPanel de Swing.
 public class PnlConfiguracion extends javax.swing.JPanel {
 
     private static final int MAX_ERRORES_MOSTRADOS = 10;
@@ -68,14 +68,16 @@ public class PnlConfiguracion extends javax.swing.JPanel {
         if (!registro.hayErrores()) {
             return "Archivos recargados correctamente, sin errores.";
         }
-        List<ErrorCarga> errores = registro.getErrores();
+        ErrorCarga[] errores = registro.getErrores();
         StringBuilder sb = new StringBuilder("Archivos recargados. Se omitieron ")
-                .append(errores.size()).append(" registro(s) con errores:\n\n");
-        errores.stream().limit(MAX_ERRORES_MOSTRADOS).forEach(e -> sb.append("• ").append(e).append('\n'));
-        if (errores.size() > MAX_ERRORES_MOSTRADOS) {
-            sb.append("… y ").append(errores.size() - MAX_ERRORES_MOSTRADOS).append(" más (ver bitácora).\n");
+                .append(errores.length).append(" registro(s) con errores:\n\n");
+        for (int i = 0; i < errores.length && i < MAX_ERRORES_MOSTRADOS; i++) {
+            sb.append("• ").append(errores[i]).append('\n');
         }
-        if (!registro.getRespaldos().isEmpty()) {
+        if (errores.length > MAX_ERRORES_MOSTRADOS) {
+            sb.append("… y ").append(errores.length - MAX_ERRORES_MOSTRADOS).append(" más (ver bitácora).\n");
+        }
+        if (registro.getRespaldos().length > 0) {
             sb.append("\nCopia de los archivos originales en: ").append(String.join(", ", registro.getRespaldos()));
         }
         return sb.toString();

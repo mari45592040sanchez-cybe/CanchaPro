@@ -15,6 +15,7 @@ public class Configuracion {
     public static final int ANTICIPO_MINIMO_DEFECTO = 25;
     public static final String NOMBRE_NEGOCIO_DEFECTO = "Complejo Deportivo La 10";
 
+    // POO - Encapsulamiento: atributos privados; los setters validan los valores (por ejemplo anticipo 0-100).
     private boolean moduloTienda = MODULO_TIENDA_DEFECTO;
     private String rutaDatos = RUTA_DATOS_DEFECTO;
     private int anticipoMinimoPorcentaje = ANTICIPO_MINIMO_DEFECTO;
@@ -26,7 +27,8 @@ public class Configuracion {
      * (el núcleo de reservas) siempre está habilitado.
      */
     public boolean estaHabilitado(Modulo modulo) {
-        return modulo != Modulo.TIENDA || moduloTienda;
+        //return modulo != Modulo.TIENDA || moduloTienda;
+        return true;
     }
 
     public boolean isModuloTienda() {

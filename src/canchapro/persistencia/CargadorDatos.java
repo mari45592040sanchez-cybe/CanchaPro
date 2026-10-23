@@ -1,8 +1,6 @@
 package canchapro.persistencia;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Orquesta la carga de todos los archivos al iniciar el sistema.
@@ -18,14 +16,25 @@ public class CargadorDatos {
     public static final String CARPETA_RESPALDOS = "respaldos";
 
     private final Path carpetaDatos;
-    private final List<RepositorioCsv<?>> repositorios = new ArrayList<>();
+    // POO - Colecciones / Polimorfismo: arreglo del tipo base RepositorioCsv; cada posición guarda
+    // un repositorio distinto (usuarios, clientes...) y todos se tratan igual al llamar cargar().
+    private RepositorioCsv<?>[] repositorios = new RepositorioCsv<?>[15];
+    private int cantidad;
 
     public CargadorDatos(Path carpetaDatos) {
         this.carpetaDatos = carpetaDatos;
     }
 
     public void registrar(RepositorioCsv<?> repositorio) {
-        repositorios.add(repositorio);
+        if (cantidad == repositorios.length) {
+            RepositorioCsv<?>[] mayor = new RepositorioCsv<?>[repositorios.length * 2];
+            for (int i = 0; i < cantidad; i++) {
+                mayor[i] = repositorios[i];
+            }
+            repositorios = mayor;
+        }
+        repositorios[cantidad] = repositorio;
+        cantidad++;
     }
 
     /**
@@ -36,10 +45,11 @@ public class CargadorDatos {
      * seguirán disponibles en la copia para corregirlas.
      */
     public void cargarTodo(RegistroErroresCarga registro) {
-        for (RepositorioCsv<?> repositorio : repositorios) {
+        for (int i = 0; i < cantidad; i++) {
+            RepositorioCsv<?> repositorio = repositorios[i];
             repositorio.cargar();
-            List<ErrorCarga> errores = repositorio.getErroresCarga();
-            if (!errores.isEmpty()) {
+            ErrorCarga[] errores = repositorio.getErroresCarga();
+            if (errores.length > 0) {
                 registro.agregarTodos(errores);
                 Path respaldo = ArchivoCsv.respaldar(repositorio.getArchivo(),
                         carpetaDatos.resolve(CARPETA_RESPALDOS));

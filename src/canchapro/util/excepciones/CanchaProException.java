@@ -5,6 +5,8 @@ package canchapro.util.excepciones;
  * heredan de esta clase, de modo que las vistas pueden capturarlas en un
  * solo bloque y mostrar su mensaje al usuario.
  */
+// POO - Herencia: excepción base; ReglaNegocioException, DatosInvalidosException, etc. heredan de ella.
+// POO - Polimorfismo: un solo catch (CanchaProException e) atrapa cualquiera de sus subclases.
 public class CanchaProException extends RuntimeException {
 
     public CanchaProException(String mensaje) {

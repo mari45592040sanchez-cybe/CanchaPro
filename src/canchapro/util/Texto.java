@@ -6,6 +6,7 @@ import java.util.Locale;
 /**
  * Utilidades de texto para búsquedas.
  */
+// POO - Reutilización: utilidades de texto (búsqueda sin tildes) que usan varios módulos.
 public final class Texto {
 
     private Texto() {

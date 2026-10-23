@@ -13,6 +13,7 @@ import java.util.Locale;
  * Conversión de campos de texto del CSV a tipos Java, con mensajes claros
  * cuando el valor no es válido.
  */
+// POO - Reutilización: conversiones de texto a fecha, número, booleano... que usan todos los repositorios.
 public final class CamposCsv {
 
     private CamposCsv() {

@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
  * Cada método lanza {@link DatosInvalidosException} con un mensaje
  * listo para mostrarse al usuario.
  */
+// POO - Reutilización / Responsabilidad: validaciones comunes que usan todos los módulos.
 public final class Validador {
 
     private static final Pattern TELEFONO = Pattern.compile("\\d{8}");

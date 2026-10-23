@@ -9,13 +9,13 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Properties;
 import java.util.function.Consumer;
 
 /**
  * Lee y guarda la configuración en un archivo .properties (UTF-8).
  */
+// POO - Responsabilidad: solo lee y guarda el archivo canchapro.properties.
 public class ConfiguracionRepositorio {
 
     public static final String CLAVE_MODULO_TIENDA = "modulo_tienda";
@@ -65,7 +65,7 @@ public class ConfiguracionRepositorio {
     }
 
     public void guardar(Configuracion c) {
-        ArchivoCsv.escribirLineas(archivo, List.of(
+        ArchivoCsv.escribirLineas(archivo, new String[]{
                 "# Configuración de CanchaPro",
                 "# Se puede editar con el programa cerrado. Los cambios aplican al volver a iniciar.",
                 "",
@@ -80,7 +80,7 @@ public class ConfiguracionRepositorio {
                 "",
                 "# Nombre que aparece en las pantallas y comprobantes",
                 CLAVE_NOMBRE_NEGOCIO + "=" + escapar(c.getNombreNegocio())
-        ));
+        });
     }
 
     public Path getArchivo() {

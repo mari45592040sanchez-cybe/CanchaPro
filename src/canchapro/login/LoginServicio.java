@@ -15,12 +15,14 @@ import java.util.Optional;
 /**
  * Inicio de sesión y cambio de contraseña.
  */
+// POO - Responsabilidad: solo se encarga de autenticar y de bloquear tras 3 intentos fallidos.
 public class LoginServicio {
 
     private static final String MENSAJE_CREDENCIALES = "Usuario o contraseña incorrectos.";
     private static final int MAX_INTENTOS = 3;
     private static final Duration TIEMPO_BLOQUEO = Duration.ofSeconds(60);
 
+    // POO - Relaciones (composición): usa el repositorio de usuarios para buscar al usuario.
     private final UsuarioRepositorio repositorio;
     /** Intentos fallidos por nombre de usuario (solo en memoria). */
     private final Map<String, IntentosFallidos> intentos = new HashMap<>();

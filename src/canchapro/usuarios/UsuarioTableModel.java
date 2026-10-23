@@ -1,32 +1,36 @@
 package canchapro.usuarios;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.table.AbstractTableModel;
 
 /**
  * Modelo de la tabla de usuarios.
  */
+// POO - Herencia: extiende AbstractTableModel de Swing.
+// POO - Polimorfismo: la JTable llama a getRowCount(), getValueAt()... sin saber que es un modelo de usuarios.
 public class UsuarioTableModel extends AbstractTableModel {
 
     private static final String[] COLUMNAS = {"Código", "Nombre", "Usuario", "Rol", "Teléfono", "Estado", "Módulos"};
 
-    private final List<Usuario> usuarios = new ArrayList<>();
+    // POO - Colecciones: arreglo de objetos Usuario que se muestran en la tabla.
+    private Usuario[] usuarios = new Usuario[0];
 
-    public void setUsuarios(List<Usuario> nuevos) {
-        usuarios.clear();
-        usuarios.addAll(nuevos);
+    public void setUsuarios(Usuario[] nuevos) {
+        // Se guarda una copia para que el arreglo de la tabla no cambie desde afuera.
+        usuarios = new Usuario[nuevos.length];
+        for (int i = 0; i < nuevos.length; i++) {
+            usuarios[i] = nuevos[i];
+        }
         fireTableDataChanged();
     }
 
     public Usuario getUsuario(int fila) {
-        return usuarios.get(fila);
+        return usuarios[fila];
     }
 
     public int indiceDe(String codigo) {
-        for (int i = 0; i < usuarios.size(); i++) {
-            if (usuarios.get(i).getCodigo().equals(codigo)) {
+        for (int i = 0; i < usuarios.length; i++) {
+            if (usuarios[i].getCodigo().equals(codigo)) {
                 return i;
             }
         }
@@ -35,7 +39,7 @@ public class UsuarioTableModel extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
-        return usuarios.size();
+        return usuarios.length;
     }
 
     @Override
@@ -50,7 +54,7 @@ public class UsuarioTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int fila, int columna) {
-        Usuario u = usuarios.get(fila);
+        Usuario u = usuarios[fila];
         return switch (columna) {
             case 0 -> u.getCodigo();
             case 1 -> u.getNombre();

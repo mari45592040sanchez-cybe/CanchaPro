@@ -8,8 +8,10 @@ import java.util.Set;
 /**
  * El empleado solo accede a los módulos que el administrador le asignó.
  */
+// POO - Herencia: Empleado ES UN Usuario (y por lo tanto una Persona).
 public class Empleado extends Usuario {
 
+    // POO - Colecciones / Relaciones: el empleado TIENE un conjunto de módulos asignados por el administrador.
     private final Set<Modulo> modulosAsignados = EnumSet.noneOf(Modulo.class);
 
     public Empleado(String codigo, String nombre, String telefono, String correo,
@@ -24,6 +26,7 @@ public class Empleado extends Usuario {
         return Rol.EMPLEADO;
     }
 
+    // POO - Polimorfismo: el empleado solo accede a los módulos que tiene asignados.
     @Override
     public boolean puedeAcceder(Modulo modulo) {
         return !modulo.isSoloAdministrador() && modulosAsignados.contains(modulo);
@@ -44,6 +47,7 @@ public class Empleado extends Usuario {
         modulosAsignados.addAll(modulos);
     }
 
+    // POO - Encapsulamiento: se devuelve una vista de solo lectura; desde afuera no se pueden modificar.
     public Set<Modulo> getModulos() {
         return Collections.unmodifiableSet(modulosAsignados);
     }

@@ -10,6 +10,7 @@ import javax.swing.JOptionPane;
  * Si es obligatorio (primer ingreso o contraseña restablecida), el usuario
  * no puede continuar al sistema sin cambiarla.
  */
+// POO - Herencia: extiende JDialog de Swing.
 public class DlgCambiarPassword extends javax.swing.JDialog {
 
     private final LoginServicio loginServicio;

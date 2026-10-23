@@ -4,14 +4,15 @@ import canchapro.util.GeneradorCodigo;
 import canchapro.util.SeguridadPassword;
 import canchapro.util.excepciones.EntidadNoEncontradaException;
 import canchapro.util.excepciones.ReglaNegocioException;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 
 /**
  * Reglas de negocio para la gestión de usuarios (administradores y empleados).
  */
+// POO - Responsabilidad: reglas de negocio de usuarios (no repetir username, siempre un admin activo...).
 public class UsuarioServicio {
 
     public static final String USERNAME_INICIAL = "admin";
@@ -19,6 +20,7 @@ public class UsuarioServicio {
     private static final String PREFIJO_CODIGO = "USR-";
     private static final int LARGO_PASSWORD_TEMPORAL = 8;
 
+    // POO - Relaciones (composición): el servicio TIENE un repositorio, que recibe por el constructor.
     private final UsuarioRepositorio repositorio;
 
     public UsuarioServicio(UsuarioRepositorio repositorio) {
@@ -49,10 +51,12 @@ public class UsuarioServicio {
         return true;
     }
 
-    public List<Usuario> listar() {
-        return repositorio.listar().stream()
-                .sorted(Comparator.comparing(Usuario::getCodigo))
-                .toList();
+    /** Todos los usuarios ordenados por código. */
+    public Usuario[] listar() {
+        // POO - Colecciones: el repositorio entrega una copia del arreglo; se ordena sin afectar el original.
+        Usuario[] usuarios = repositorio.listar();
+        Arrays.sort(usuarios, Comparator.comparing(Usuario::getCodigo));
+        return usuarios;
     }
 
     public Usuario obtener(String codigo) {
@@ -76,6 +80,7 @@ public class UsuarioServicio {
         Usuario.validarPassword(passwordInicial);
 
         String codigo = siguienteCodigo();
+        // POO - Polimorfismo: la variable es de tipo Usuario, pero el objeto real es Administrador o Empleado.
         Usuario usuario = switch (rol) {
             case ADMINISTRADOR ->
                 new Administrador(codigo, nombre, telefono, correo, usernameValido, "", "", true, true);

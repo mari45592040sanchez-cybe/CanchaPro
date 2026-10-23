@@ -9,6 +9,7 @@ import javax.swing.JTextArea;
 /**
  * Diálogos de uso común en las pantallas.
  */
+// POO - Reutilización: mensajes y diálogos comunes para todas las pantallas.
 public final class Dialogos {
 
     private Dialogos() {

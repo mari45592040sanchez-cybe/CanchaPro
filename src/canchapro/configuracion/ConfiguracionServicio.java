@@ -21,6 +21,7 @@ public class ConfiguracionServicio {
 
     private static final int LINEAS_BITACORA = 300;
 
+    // POO - Relaciones (composición): el servicio TIENE la configuración y su repositorio.
     private final Configuracion configuracion;
     private final ConfiguracionRepositorio repositorio;
     private final Path carpetaDatos;
