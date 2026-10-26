@@ -2,14 +2,13 @@ package canchapro.util;
 
 import java.time.Duration;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Las horas del sistema se manejan en bloques de 30 minutos (08:00, 08:30…)
  * y las reservas duran de 1 a 4 horas. Esta clase centraliza esas reglas
  * para que todas las pantallas ofrezcan las mismas opciones.
  */
+// POO - Reutilización: las pantallas de Canchas, Tarifas, Disponibilidad y Reservas usan las mismas horas.
 public final class BloquesHorario {
 
     public static final int MINUTOS_BLOQUE = 30;
@@ -26,24 +25,31 @@ public final class BloquesHorario {
     }
 
     /** Horas de 30 en 30 minutos entre desde y hasta (ambas incluidas). */
+    // POO - Colecciones: se calcula el tamaño exacto y se llena un arreglo de LocalTime.
     public static LocalTime[] horasEntre(LocalTime desde, LocalTime hasta) {
-        List<LocalTime> horas = new ArrayList<>();
-        for (LocalTime hora = desde; !hora.isAfter(hasta); hora = hora.plusMinutes(MINUTOS_BLOQUE)) {
-            horas.add(hora);
-            if (hora.equals(ULTIMO_BLOQUE)) {
-                break;
-            }
+        if (desde.isAfter(hasta)) {
+            return new LocalTime[0];
         }
-        return horas.toArray(LocalTime[]::new);
+        int cantidad = (int) (Duration.between(desde, hasta).toMinutes() / MINUTOS_BLOQUE) + 1;
+        LocalTime[] horas = new LocalTime[cantidad];
+        LocalTime hora = desde;
+        for (int i = 0; i < cantidad; i++) {
+            horas[i] = hora;
+            hora = hora.plusMinutes(MINUTOS_BLOQUE);
+        }
+        return horas;
     }
 
     /** Duraciones permitidas para una reserva: 1 h, 1 h 30 min, …, 4 h. */
     public static OpcionDuracion[] duracionesPermitidas() {
-        List<OpcionDuracion> opciones = new ArrayList<>();
-        for (Duration d = DURACION_MINIMA; d.compareTo(DURACION_MAXIMA) <= 0; d = d.plusMinutes(MINUTOS_BLOQUE)) {
-            opciones.add(new OpcionDuracion(d));
+        int cantidad = (int) ((DURACION_MAXIMA.toMinutes() - DURACION_MINIMA.toMinutes()) / MINUTOS_BLOQUE) + 1;
+        OpcionDuracion[] opciones = new OpcionDuracion[cantidad];
+        Duration d = DURACION_MINIMA;
+        for (int i = 0; i < cantidad; i++) {
+            opciones[i] = new OpcionDuracion(d);
+            d = d.plusMinutes(MINUTOS_BLOQUE);
         }
-        return opciones.toArray(OpcionDuracion[]::new);
+        return opciones;
     }
 
     /** "1 h", "1 h 30 min", "45 min" */

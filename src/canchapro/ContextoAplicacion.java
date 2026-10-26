@@ -1,17 +1,17 @@
 package canchapro;
 
-// [CANCHAS] import canchapro.canchas.CanchaRepositorio;
-// [CANCHAS] import canchapro.canchas.CanchaServicio;
+import canchapro.canchas.CanchaRepositorio;
+import canchapro.canchas.CanchaServicio;
 import canchapro.clientes.ClienteRepositorio;
 import canchapro.clientes.ClienteServicio;
 import canchapro.configuracion.Configuracion;
 import canchapro.configuracion.ConfiguracionRepositorio;
 import canchapro.configuracion.ConfiguracionServicio;
 // [DASHBOARD] import canchapro.dashboard.DashboardServicio;
-// [DISPONIBILIDAD] import canchapro.disponibilidad.DisponibilidadServicio;
+import canchapro.disponibilidad.DisponibilidadServicio;
 import canchapro.login.LoginServicio;
-// [RESERVAS_PAGOS] import canchapro.pagos.PagoRepositorio;
-// [RESERVAS_PAGOS] import canchapro.pagos.PagoServicio;
+import canchapro.pagos.PagoRepositorio;
+import canchapro.pagos.PagoServicio;
 import canchapro.persistencia.CargadorDatos;
 import canchapro.persistencia.ErrorCarga;
 import canchapro.persistencia.RegistroErroresCarga;
@@ -24,13 +24,13 @@ import canchapro.persistencia.RegistroErroresCarga;
 // [REPORTES] import canchapro.reportes.ReporteReservasPorCancha;
 // [REPORTES] import canchapro.reportes.ReporteReservasPorFecha;
 // [REPORTES] import canchapro.reportes.ReporteServicio;
-// [RESERVAS_PAGOS] import canchapro.reservas.OcupacionReservas;
-// [RESERVAS_PAGOS] import canchapro.reservas.ReservaRepositorio;
-// [RESERVAS_PAGOS] import canchapro.reservas.ReservaServicio;
-// [SERVICIOS] import canchapro.servicios.ServicioAdicionalRepositorio;
-// [SERVICIOS] import canchapro.servicios.ServicioAdicionalServicio;
-// [TARIFAS] import canchapro.tarifas.TarifaRepositorio;
-// [TARIFAS] import canchapro.tarifas.TarifaServicio;
+import canchapro.reservas.OcupacionReservas;
+import canchapro.reservas.ReservaRepositorio;
+import canchapro.reservas.ReservaServicio;
+import canchapro.servicios.ServicioAdicionalRepositorio;
+import canchapro.servicios.ServicioAdicionalServicio;
+import canchapro.tarifas.TarifaRepositorio;
+import canchapro.tarifas.TarifaServicio;
 // [TIENDA] import canchapro.tienda.DetalleVentaRepositorio;
 // [TIENDA] import canchapro.tienda.ProductoRepositorio;
 // [TIENDA] import canchapro.tienda.ReporteVentasTienda;
@@ -65,12 +65,12 @@ public class ContextoAplicacion {
     private final UsuarioServicio usuarioServicio;
     private final LoginServicio loginServicio;
     private final ClienteServicio clienteServicio;
-    // [CANCHAS] private final CanchaServicio canchaServicio;
-    // [TARIFAS] private final TarifaServicio tarifaServicio;
-    // [SERVICIOS] private final ServicioAdicionalServicio servicioAdicionalServicio;
-    // [DISPONIBILIDAD] private final DisponibilidadServicio disponibilidadServicio;
-    // [RESERVAS_PAGOS] private final ReservaServicio reservaServicio;
-    // [RESERVAS_PAGOS] private final PagoServicio pagoServicio;
+    private final CanchaServicio canchaServicio;
+    private final TarifaServicio tarifaServicio;
+    private final ServicioAdicionalServicio servicioAdicionalServicio;
+    private final DisponibilidadServicio disponibilidadServicio;
+    private final ReservaServicio reservaServicio;
+    private final PagoServicio pagoServicio;
     // [DASHBOARD] private final DashboardServicio dashboardServicio;
     // [TIENDA] private final TiendaServicio tiendaServicio;
     // [REPORTES] private final ReporteServicio reporteServicio;
@@ -94,16 +94,16 @@ public class ContextoAplicacion {
         //    y se cargan en ese mismo orden.
         UsuarioRepositorio usuarioRepositorio = new UsuarioRepositorio(carpetaDatos);
         ClienteRepositorio clienteRepositorio = new ClienteRepositorio(carpetaDatos);
-        // [CANCHAS] CanchaRepositorio canchaRepositorio = new CanchaRepositorio(carpetaDatos);
-        // [TARIFAS] TarifaRepositorio tarifaRepositorio = new TarifaRepositorio(carpetaDatos);
-        // [SERVICIOS] ServicioAdicionalRepositorio servicioAdicionalRepositorio = new ServicioAdicionalRepositorio(carpetaDatos);
-        // [RESERVAS_PAGOS] ReservaRepositorio reservaRepositorio = new ReservaRepositorio(carpetaDatos, clienteRepositorio,
-                // [RESERVAS_PAGOS] canchaRepositorio, servicioAdicionalRepositorio, usuarioRepositorio);
-        // [RESERVAS_PAGOS] PagoRepositorio pagoRepositorio = new PagoRepositorio(carpetaDatos, reservaRepositorio::existe,
-                // [RESERVAS_PAGOS] usuarioRepositorio);
-        // [RESERVAS_PAGOS] // Los pagos se asocian a sus reservas cada vez que se lee cualquiera de los dos archivos.
-        // [RESERVAS_PAGOS] reservaRepositorio.setFuentePagos(pagoRepositorio::listar);
-        // [RESERVAS_PAGOS] pagoRepositorio.setAlCargar(reservaRepositorio::vincularPagos);
+        CanchaRepositorio canchaRepositorio = new CanchaRepositorio(carpetaDatos);
+        TarifaRepositorio tarifaRepositorio = new TarifaRepositorio(carpetaDatos);
+        ServicioAdicionalRepositorio servicioAdicionalRepositorio = new ServicioAdicionalRepositorio(carpetaDatos);
+        ReservaRepositorio reservaRepositorio = new ReservaRepositorio(carpetaDatos, clienteRepositorio,
+                canchaRepositorio, servicioAdicionalRepositorio, usuarioRepositorio);
+        PagoRepositorio pagoRepositorio = new PagoRepositorio(carpetaDatos, reservaRepositorio::existe,
+                usuarioRepositorio);
+        // Los pagos se asocian a sus reservas cada vez que se lee cualquiera de los dos archivos.
+        reservaRepositorio.setFuentePagos(pagoRepositorio::listar);
+        pagoRepositorio.setAlCargar(reservaRepositorio::vincularPagos);
 
         // [TIENDA] // Módulo Tienda: sus archivos se cargan siempre (aunque el módulo esté
         // [TIENDA] // desactivado) para que los datos estén intactos al reactivarlo.
@@ -117,11 +117,11 @@ public class ContextoAplicacion {
         cargador = new CargadorDatos(carpetaDatos);
         cargador.registrar(usuarioRepositorio);
         cargador.registrar(clienteRepositorio);
-        // [CANCHAS] cargador.registrar(canchaRepositorio);
-        // [TARIFAS] cargador.registrar(tarifaRepositorio);
-        // [SERVICIOS] cargador.registrar(servicioAdicionalRepositorio);
-        // [RESERVAS_PAGOS] cargador.registrar(reservaRepositorio);
-        // [RESERVAS_PAGOS] cargador.registrar(pagoRepositorio);
+        cargador.registrar(canchaRepositorio);
+        cargador.registrar(tarifaRepositorio);
+        cargador.registrar(servicioAdicionalRepositorio);
+        cargador.registrar(reservaRepositorio);
+        cargador.registrar(pagoRepositorio);
         // [TIENDA] cargador.registrar(productoRepositorio);
         // [TIENDA] cargador.registrar(ventaRepositorio);
         // [TIENDA] cargador.registrar(detalleVentaRepositorio);
@@ -132,14 +132,14 @@ public class ContextoAplicacion {
         usuarioServicio = new UsuarioServicio(usuarioRepositorio);
         loginServicio = new LoginServicio(usuarioRepositorio);
         clienteServicio = new ClienteServicio(clienteRepositorio);
-        // [CANCHAS] canchaServicio = new CanchaServicio(canchaRepositorio);
-        // [TARIFAS] tarifaServicio = new TarifaServicio(tarifaRepositorio);
-        // [SERVICIOS] servicioAdicionalServicio = new ServicioAdicionalServicio(servicioAdicionalRepositorio);
-        // [DISPONIBILIDAD] disponibilidadServicio = new DisponibilidadServicio(canchaServicio, tarifaServicio,
-                // [DISPONIBILIDAD] new OcupacionReservas(reservaRepositorio), reloj);
-        // [RESERVAS_PAGOS] reservaServicio = new ReservaServicio(reservaRepositorio, pagoRepositorio, disponibilidadServicio,
-                // [RESERVAS_PAGOS] configuracion, reloj);
-        // [RESERVAS_PAGOS] pagoServicio = new PagoServicio(pagoRepositorio, reservaServicio, configuracion, reloj);
+        canchaServicio = new CanchaServicio(canchaRepositorio);
+        tarifaServicio = new TarifaServicio(tarifaRepositorio);
+        servicioAdicionalServicio = new ServicioAdicionalServicio(servicioAdicionalRepositorio);
+        disponibilidadServicio = new DisponibilidadServicio(canchaServicio, tarifaServicio,
+                new OcupacionReservas(reservaRepositorio), reloj);
+        reservaServicio = new ReservaServicio(reservaRepositorio, pagoRepositorio, disponibilidadServicio,
+                configuracion, reloj);
+        pagoServicio = new PagoServicio(pagoRepositorio, reservaServicio, configuracion, reloj);
         // [DASHBOARD] dashboardServicio = new DashboardServicio(reservaServicio, pagoServicio, canchaServicio, reloj);
         // [TIENDA] tiendaServicio = new TiendaServicio(productoRepositorio, ventaRepositorio, detalleVentaRepositorio, reloj);
         // [REPORTES] reporteServicio = crearReportes(reloj);
@@ -148,13 +148,13 @@ public class ContextoAplicacion {
 
         // 4. Datos iniciales del primer arranque
         administradorInicialCreado = usuarioServicio.asegurarAdministrador();
-        // [CANCHAS] canchaServicio.asegurarDatosIniciales();
-        // [TARIFAS] tarifaServicio.asegurarDatosIniciales();
-        // [SERVICIOS] servicioAdicionalServicio.asegurarDatosIniciales();
+        canchaServicio.asegurarDatosIniciales();
+        tarifaServicio.asegurarDatosIniciales();
+        servicioAdicionalServicio.asegurarDatosIniciales();
         // [TIENDA] tiendaServicio.asegurarDatosIniciales();
 
-        // [RESERVAS_PAGOS] // 5. Reservas que empezaron o terminaron mientras el programa estaba cerrado
-        // [RESERVAS_PAGOS] reservaServicio.actualizarEstadosAutomaticos();
+        // 5. Reservas que empezaron o terminaron mientras el programa estaba cerrado
+        reservaServicio.actualizarEstadosAutomaticos();
     }
 
     /**
@@ -168,7 +168,7 @@ public class ContextoAplicacion {
         RegistroErroresCarga registro = new RegistroErroresCarga();
         cargador.cargarTodo(registro);
         registro.escribirLog(carpetaDatos);
-        // [RESERVAS_PAGOS] reservaServicio.actualizarEstadosAutomaticos();
+        reservaServicio.actualizarEstadosAutomaticos();
         return registro;
     }
 
@@ -223,29 +223,29 @@ public class ContextoAplicacion {
         return clienteServicio;
     }
 
-    // [CANCHAS] public CanchaServicio getCanchaServicio() {
-        // [CANCHAS] return canchaServicio;
-    // [CANCHAS] }
+    public CanchaServicio getCanchaServicio() {
+        return canchaServicio;
+    }
 
-    // [TARIFAS] public TarifaServicio getTarifaServicio() {
-        // [TARIFAS] return tarifaServicio;
-    // [TARIFAS] }
+    public TarifaServicio getTarifaServicio() {
+        return tarifaServicio;
+    }
 
-    // [SERVICIOS] public ServicioAdicionalServicio getServicioAdicionalServicio() {
-        // [SERVICIOS] return servicioAdicionalServicio;
-    // [SERVICIOS] }
+    public ServicioAdicionalServicio getServicioAdicionalServicio() {
+        return servicioAdicionalServicio;
+    }
 
-    // [DISPONIBILIDAD] public DisponibilidadServicio getDisponibilidadServicio() {
-        // [DISPONIBILIDAD] return disponibilidadServicio;
-    // [DISPONIBILIDAD] }
+    public DisponibilidadServicio getDisponibilidadServicio() {
+        return disponibilidadServicio;
+    }
 
-    // [RESERVAS_PAGOS] public ReservaServicio getReservaServicio() {
-        // [RESERVAS_PAGOS] return reservaServicio;
-    // [RESERVAS_PAGOS] }
+    public ReservaServicio getReservaServicio() {
+        return reservaServicio;
+    }
 
-    // [RESERVAS_PAGOS] public PagoServicio getPagoServicio() {
-        // [RESERVAS_PAGOS] return pagoServicio;
-    // [RESERVAS_PAGOS] }
+    public PagoServicio getPagoServicio() {
+        return pagoServicio;
+    }
 
     // [DASHBOARD] public DashboardServicio getDashboardServicio() {
         // [DASHBOARD] return dashboardServicio;

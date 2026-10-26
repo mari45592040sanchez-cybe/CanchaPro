@@ -27,8 +27,7 @@ public class Configuracion {
      * (el núcleo de reservas) siempre está habilitado.
      */
     public boolean estaHabilitado(Modulo modulo) {
-        //return modulo != Modulo.TIENDA || moduloTienda;
-        return true;
+        return modulo != Modulo.TIENDA || moduloTienda;
     }
 
     public boolean isModuloTienda() {

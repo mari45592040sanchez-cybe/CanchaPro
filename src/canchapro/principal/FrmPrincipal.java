@@ -1,23 +1,22 @@
 package canchapro.principal;
 
 import canchapro.ContextoAplicacion;
-// [CANCHAS] import canchapro.canchas.PnlCanchas;
+import canchapro.canchas.PnlCanchas;
 import canchapro.clientes.PnlClientes;
 import canchapro.configuracion.PnlConfiguracion;
 // [DASHBOARD] import canchapro.dashboard.Indicador;
 // [DASHBOARD] import canchapro.dashboard.PnlDashboard;
-// [DISPONIBILIDAD] import canchapro.disponibilidad.PnlDisponibilidad;
+import canchapro.disponibilidad.PnlDisponibilidad;
 import canchapro.login.DlgCambiarPassword;
 import canchapro.login.FrmLogin;
 import canchapro.login.Sesion;
-// [RESERVAS_PAGOS] import canchapro.pagos.PnlPagos;
+import canchapro.pagos.PnlPagos;
 // [REPORTES] import canchapro.reportes.PnlReportes;
-// [RESERVAS_PAGOS] import canchapro.reservas.PnlModuloReservas;
-// [RESERVAS_PAGOS] import canchapro.reservas.PnlNuevaReserva;
-// [RESERVAS_PAGOS] import canchapro.reservas.PnlReservas;
-// [RESERVAS_PAGOS] import canchapro.reservas.Reserva;
-// [SERVICIOS] import canchapro.servicios.PnlServicios;
-// [TARIFAS] import canchapro.tarifas.PnlTarifas;
+import canchapro.reservas.PnlModuloReservas;
+import canchapro.reservas.PnlNuevaReserva;
+import canchapro.reservas.PnlReservas;
+import canchapro.servicios.PnlServicios;
+import canchapro.tarifas.PnlTarifas;
 // [TIENDA] import canchapro.tienda.PnlModuloTienda;
 // [TIENDA] import canchapro.tienda.PnlProductos;
 // [TIENDA] import canchapro.tienda.PnlVentas;
@@ -41,7 +40,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
-// [RESERVAS_PAGOS] import javax.swing.Timer;
+import javax.swing.Timer;
 
 /**
  * Ventana principal: menú lateral con los módulos permitidos para el
@@ -63,7 +62,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
     // POO - Colecciones: mapa módulo -> pantalla ya creada (cada pantalla se crea una sola vez).
     private final Map<Modulo, JComponent> paneles = new EnumMap<>(Modulo.class);
     private final Map<Modulo, JButton> botones = new EnumMap<>(Modulo.class);
-    // [RESERVAS_PAGOS] private final Timer temporizadorEstados;
+    private final Timer temporizadorEstados;
     private Modulo moduloActual;
     /** Oyentes registrados en Configuración (patrón Observador). */
     private final Runnable oyenteCambios = this::configuracionCambiada;
@@ -83,27 +82,27 @@ public class FrmPrincipal extends javax.swing.JFrame {
         contexto.getConfiguracionServicio().agregarOyenteCambios(oyenteCambios);
         contexto.getConfiguracionServicio().agregarOyenteRecarga(oyenteRecarga);
 
-        // [RESERVAS_PAGOS] temporizadorEstados = new Timer(INTERVALO_ESTADOS_MS, e -> actualizarEstadosReservas());
-        // [RESERVAS_PAGOS] temporizadorEstados.start();
+        temporizadorEstados = new Timer(INTERVALO_ESTADOS_MS, e -> actualizarEstadosReservas());
+        temporizadorEstados.start();
     }
 
-    // [RESERVAS_PAGOS] /**
-     // [RESERVAS_PAGOS] * Pasa a EN_CURSO / FINALIZADA las reservas según la hora y, si hubo
-     // [RESERVAS_PAGOS] * cambios, refresca la pantalla visible.
-     // [RESERVAS_PAGOS] */
-    // [RESERVAS_PAGOS] private void actualizarEstadosReservas() {
-        // [RESERVAS_PAGOS] try {
-            // [RESERVAS_PAGOS] boolean cambiaron = contexto.getReservaServicio().actualizarEstadosAutomaticos() > 0;
-            // [RESERVAS_PAGOS] // El inicio se refresca cada minuto (ingresos, reservas en curso);
-            // [RESERVAS_PAGOS] // las demás pantallas solo si cambió el estado de alguna reserva.
-            // [RESERVAS_PAGOS] if (cambiaron || moduloActual == Modulo.DASHBOARD) {
-                // [RESERVAS_PAGOS] refrescarModuloActual();
-            // [RESERVAS_PAGOS] }
-        // [RESERVAS_PAGOS] } catch (RuntimeException e) {
-            // [RESERVAS_PAGOS] // Por ejemplo, el archivo está bloqueado: se reintentará en el próximo minuto.
-            // [RESERVAS_PAGOS] System.err.println("No se pudieron actualizar los estados de las reservas: " + e.getMessage());
-        // [RESERVAS_PAGOS] }
-    // [RESERVAS_PAGOS] }
+    /**
+     * Pasa a EN_CURSO / FINALIZADA las reservas según la hora y, si hubo
+     * cambios, refresca la pantalla visible.
+     */
+    private void actualizarEstadosReservas() {
+        try {
+            boolean cambiaron = contexto.getReservaServicio().actualizarEstadosAutomaticos() > 0;
+            // El inicio se refresca cada minuto (ingresos, reservas en curso);
+            // las demás pantallas solo si cambió el estado de alguna reserva.
+            if (cambiaron || moduloActual == Modulo.DASHBOARD) {
+                refrescarModuloActual();
+            }
+        } catch (RuntimeException e) {
+            // Por ejemplo, el archivo está bloqueado: se reintentará en el próximo minuto.
+            System.err.println("No se pudieron actualizar los estados de las reservas: " + e.getMessage());
+        }
+    }
 
     private void refrescarModuloActual() {
         if (moduloActual != null && paneles.get(moduloActual) instanceof Refrescable refrescable) {
@@ -125,7 +124,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
     private void configuracionCambiada() {
         actualizarTitulo();
         descartarPanel(Modulo.DASHBOARD);
-        //descartarPanel(Modulo.REPORTES);
+        descartarPanel(Modulo.REPORTES);
         Modulo actual = moduloActual;
         moduloActual = null;
         construirMenu(actual);
@@ -152,7 +151,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
 
     @Override
     public void dispose() {
-        // [RESERVAS_PAGOS] temporizadorEstados.stop();
+        temporizadorEstados.stop();
         contexto.getConfiguracionServicio().quitarOyente(oyenteCambios);
         contexto.getConfiguracionServicio().quitarOyente(oyenteRecarga);
         super.dispose();
@@ -239,21 +238,21 @@ public class FrmPrincipal extends javax.swing.JFrame {
                     // [TIENDA] new PnlProductos(contexto.getTiendaServicio()));
             case CLIENTES -> new PnlClientes(contexto.getClienteServicio());
             
-            // [DISPONIBILIDAD] case DISPONIBILIDAD -> crearPanelDisponibilidad();
-            // [RESERVAS_PAGOS] case RESERVAS -> new PnlModuloReservas(
-                    // [RESERVAS_PAGOS] new PnlNuevaReserva(contexto.getReservaServicio(), contexto.getDisponibilidadServicio(),
-                            // [RESERVAS_PAGOS] contexto.getClienteServicio(), contexto.getServicioAdicionalServicio(),
-                            // [RESERVAS_PAGOS] contexto.getConfiguracion(), sesion),
-                    // [RESERVAS_PAGOS] new PnlReservas(contexto.getReservaServicio(), contexto.getCanchaServicio(),
-                            // [RESERVAS_PAGOS] contexto.getConfiguracion(), sesion));
+            case DISPONIBILIDAD -> crearPanelDisponibilidad();
+            case RESERVAS -> new PnlModuloReservas(
+                    new PnlNuevaReserva(contexto.getReservaServicio(), contexto.getDisponibilidadServicio(),
+                            contexto.getClienteServicio(), contexto.getServicioAdicionalServicio(),
+                            contexto.getConfiguracion(), sesion),
+                    new PnlReservas(contexto.getReservaServicio(), contexto.getCanchaServicio(),
+                            contexto.getConfiguracion(), sesion));
             // [REPORTES] case REPORTES -> new PnlReportes(contexto.getReporteServicio(), contexto.getCanchaServicio());
-            // [RESERVAS_PAGOS] case PAGOS -> new PnlPagos(contexto.getPagoServicio(), contexto.getReservaServicio(),
-                    // [RESERVAS_PAGOS] contexto.getConfiguracion(), sesion);
-            // [CANCHAS] case CANCHAS -> crearPanelCanchas();
-            // [TARIFAS] case TARIFAS -> new PnlTarifas(contexto.getTarifaServicio());
-            // [SERVICIOS] case SERVICIOS -> new PnlServicios(contexto.getServicioAdicionalServicio());
+            case PAGOS -> new PnlPagos(contexto.getPagoServicio(), contexto.getReservaServicio(),
+                    contexto.getConfiguracion(), sesion);
+            case CANCHAS -> crearPanelCanchas();
+            case TARIFAS -> new PnlTarifas(contexto.getTarifaServicio());
+            case SERVICIOS -> new PnlServicios(contexto.getServicioAdicionalServicio());
             case USUARIOS -> new PnlUsuarios(contexto.getUsuarioServicio(), sesion);
-            //case CONFIGURACION -> new PnlConfiguracion(contexto.getConfiguracionServicio());            
+            case CONFIGURACION -> new PnlConfiguracion(contexto.getConfiguracionServicio());            
             default -> new PnlEnConstruccion(modulo.getNombreVisible(),
                     "Este módulo se implementará en una próxima tarea.");
         };
@@ -271,36 +270,36 @@ public class FrmPrincipal extends javax.swing.JFrame {
                         // [TIENDA] () -> String.valueOf(tienda.productosConStockBajo().size())));
     // [TIENDA] }
 
-    // [RESERVAS_PAGOS] /**
-     // [RESERVAS_PAGOS] * Navega a un módulo desde un acceso rápido. Para Reservas abre
-     // [RESERVAS_PAGOS] * directamente la pestaña "Nueva reserva".
-     // [RESERVAS_PAGOS] */
-    // [RESERVAS_PAGOS] private void irA(Modulo modulo) {
-        // [RESERVAS_PAGOS] mostrarModulo(modulo);
-        // [RESERVAS_PAGOS] if (modulo == Modulo.RESERVAS && paneles.get(modulo) instanceof PnlModuloReservas reservas) {
-            // [RESERVAS_PAGOS] reservas.mostrarNuevaReserva();
-        // [RESERVAS_PAGOS] }
-    // [RESERVAS_PAGOS] }
+    /**
+     * Navega a un módulo desde un acceso rápido. Para Reservas abre
+     * directamente la pestaña "Nueva reserva".
+     */
+    private void irA(Modulo modulo) {
+        mostrarModulo(modulo);
+        if (modulo == Modulo.RESERVAS && paneles.get(modulo) instanceof PnlModuloReservas reservas) {
+            reservas.mostrarNuevaReserva();
+        }
+    }
 
-    // [RESERVAS_PAGOS] /** Disponibilidad con el botón "Reservar" si el usuario puede usar Reservas. */
-    // [RESERVAS_PAGOS] private PnlDisponibilidad crearPanelDisponibilidad() {
-        // [RESERVAS_PAGOS] PnlDisponibilidad panel = new PnlDisponibilidad(contexto.getDisponibilidadServicio());
-        // [RESERVAS_PAGOS] if (esVisible(Modulo.RESERVAS)) {
-            // [RESERVAS_PAGOS] panel.setAlReservar((solicitud, cancha) -> {
-                // [RESERVAS_PAGOS] mostrarModulo(Modulo.RESERVAS);
-                // [RESERVAS_PAGOS] ((PnlModuloReservas) paneles.get(Modulo.RESERVAS)).nuevaReserva(solicitud, cancha);
-            // [RESERVAS_PAGOS] });
-        // [RESERVAS_PAGOS] }
-        // [RESERVAS_PAGOS] return panel;
-    // [RESERVAS_PAGOS] }
+    /** Disponibilidad con el botón "Reservar" si el usuario puede usar Reservas. */
+    private PnlDisponibilidad crearPanelDisponibilidad() {
+        PnlDisponibilidad panel = new PnlDisponibilidad(contexto.getDisponibilidadServicio());
+        if (esVisible(Modulo.RESERVAS)) {
+            panel.setAlReservar((solicitud, cancha) -> {
+                mostrarModulo(Modulo.RESERVAS);
+                ((PnlModuloReservas) paneles.get(Modulo.RESERVAS)).nuevaReserva(solicitud, cancha);
+            });
+        }
+        return panel;
+    }
 
-    // [RESERVAS_PAGOS] /** Canchas, avisando las reservas futuras afectadas al ponerla en mantenimiento. */
-    // [RESERVAS_PAGOS] private PnlCanchas crearPanelCanchas() {
-        // [RESERVAS_PAGOS] PnlCanchas panel = new PnlCanchas(contexto.getCanchaServicio());
-        // [RESERVAS_PAGOS] panel.setReservasAfectadas(codigoCancha -> contexto.getReservaServicio()
-                // [RESERVAS_PAGOS] .reservasFuturasActivas(codigoCancha).stream().map(Reserva::getDescripcion).toList());
-        // [RESERVAS_PAGOS] return panel;
-    // [RESERVAS_PAGOS] }
+    /** Canchas, avisando las reservas futuras afectadas al ponerla en mantenimiento. */
+    private PnlCanchas crearPanelCanchas() {
+        PnlCanchas panel = new PnlCanchas(contexto.getCanchaServicio());
+        panel.setReservasAfectadas(codigoCancha -> contexto.getReservaServicio()
+                .describirReservasFuturas(codigoCancha));
+        return panel;
+    }
 
     private JButton crearBotonMenu(Modulo modulo) {
         JButton boton = new JButton(modulo.getNombreVisible());
