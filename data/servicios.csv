@@ -1,0 +1,6 @@
+codigo;nombre;descripcion;precio;tipoCobro;activo
+SRV-001;Balón;Balón profesional;25.00;POR_RESERVA;true
+SRV-002;Chalecos;Juego de chalecos de colores;20.00;POR_RESERVA;true
+SRV-003;Árbitro;Árbitro para el partido;75.00;POR_HORA;true
+SRV-004;Iluminación;Iluminación nocturna de la cancha;50.00;POR_HORA;true
+SRV-005;Agua;Botella de agua para jugadores;10.00;POR_RESERVA;true

@@ -4,8 +4,8 @@ import canchapro.ContextoAplicacion;
 import canchapro.canchas.PnlCanchas;
 import canchapro.clientes.PnlClientes;
 import canchapro.configuracion.PnlConfiguracion;
-// [DASHBOARD] import canchapro.dashboard.Indicador;
-// [DASHBOARD] import canchapro.dashboard.PnlDashboard;
+import canchapro.dashboard.Indicador;
+import canchapro.dashboard.PnlDashboard;
 import canchapro.disponibilidad.PnlDisponibilidad;
 import canchapro.login.DlgCambiarPassword;
 import canchapro.login.FrmLogin;
@@ -231,8 +231,8 @@ public class FrmPrincipal extends javax.swing.JFrame {
     // POO - Polimorfismo: todas las pantallas se tratan como JComponent, sin importar su clase concreta.
     private JComponent crearPanel(Modulo modulo) {
         return switch (modulo) {
-            // [DASHBOARD] case DASHBOARD -> new PnlDashboard(contexto.getDashboardServicio(), this::irA, this::esVisible,
-                    // [DASHBOARD] indicadoresTienda());
+            case DASHBOARD -> new PnlDashboard(contexto.getDashboardServicio(), this::irA, this::esVisible,
+                    indicadoresTienda());
             // [TIENDA] case TIENDA -> new PnlModuloTienda(
                     // [TIENDA] new PnlVentas(contexto.getTiendaServicio(), contexto.getClienteServicio(), sesion),
                     // [TIENDA] new PnlProductos(contexto.getTiendaServicio()));
@@ -258,17 +258,20 @@ public class FrmPrincipal extends javax.swing.JFrame {
         };
     }
 
-    // [TIENDA] /** Tarjetas de la Tienda para el inicio (solo si el módulo está activo y permitido). */
-    // [TIENDA] private List<Indicador> indicadoresTienda() {
+    /** Tarjetas de la Tienda para el inicio (solo si el módulo está activo y permitido). */
+    private Indicador[] indicadoresTienda() {
+        // Mientras no se copie el módulo Tienda, el inicio no tiene tarjetas extra.
+        // Al activar [TIENDA] se reemplaza el return por las líneas comentadas de abajo.
+        return new Indicador[0];
         // [TIENDA] if (!esVisible(Modulo.TIENDA)) {
-            // [TIENDA] return List.of();
+            // [TIENDA] return new Indicador[0];
         // [TIENDA] }
         // [TIENDA] TiendaServicio tienda = contexto.getTiendaServicio();
-        // [TIENDA] return List.of(
+        // [TIENDA] return new Indicador[]{
                 // [TIENDA] new Indicador("Tienda: vendido hoy", () -> FormatoMoneda.formatear(tienda.totalVendidoHoy())),
                 // [TIENDA] new Indicador("Tienda: productos con stock bajo",
-                        // [TIENDA] () -> String.valueOf(tienda.productosConStockBajo().size())));
-    // [TIENDA] }
+                        // [TIENDA] () -> String.valueOf(tienda.productosConStockBajo().length))};
+    }
 
     /**
      * Navega a un módulo desde un acceso rápido. Para Reservas abre

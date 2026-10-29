@@ -7,7 +7,7 @@ import canchapro.clientes.ClienteServicio;
 import canchapro.configuracion.Configuracion;
 import canchapro.configuracion.ConfiguracionRepositorio;
 import canchapro.configuracion.ConfiguracionServicio;
-// [DASHBOARD] import canchapro.dashboard.DashboardServicio;
+import canchapro.dashboard.DashboardServicio;
 import canchapro.disponibilidad.DisponibilidadServicio;
 import canchapro.login.LoginServicio;
 import canchapro.pagos.PagoRepositorio;
@@ -71,7 +71,7 @@ public class ContextoAplicacion {
     private final DisponibilidadServicio disponibilidadServicio;
     private final ReservaServicio reservaServicio;
     private final PagoServicio pagoServicio;
-    // [DASHBOARD] private final DashboardServicio dashboardServicio;
+    private final DashboardServicio dashboardServicio;
     // [TIENDA] private final TiendaServicio tiendaServicio;
     // [REPORTES] private final ReporteServicio reporteServicio;
     private final ConfiguracionServicio configuracionServicio;
@@ -140,7 +140,7 @@ public class ContextoAplicacion {
         reservaServicio = new ReservaServicio(reservaRepositorio, pagoRepositorio, disponibilidadServicio,
                 configuracion, reloj);
         pagoServicio = new PagoServicio(pagoRepositorio, reservaServicio, configuracion, reloj);
-        // [DASHBOARD] dashboardServicio = new DashboardServicio(reservaServicio, pagoServicio, canchaServicio, reloj);
+        dashboardServicio = new DashboardServicio(reservaServicio, pagoServicio, canchaServicio, reloj);
         // [TIENDA] tiendaServicio = new TiendaServicio(productoRepositorio, ventaRepositorio, detalleVentaRepositorio, reloj);
         // [REPORTES] reporteServicio = crearReportes(reloj);
         configuracionServicio = new ConfiguracionServicio(configuracion, configuracionRepositorio, carpetaDatos,
@@ -247,9 +247,9 @@ public class ContextoAplicacion {
         return pagoServicio;
     }
 
-    // [DASHBOARD] public DashboardServicio getDashboardServicio() {
-        // [DASHBOARD] return dashboardServicio;
-    // [DASHBOARD] }
+    public DashboardServicio getDashboardServicio() {
+        return dashboardServicio;
+    }
 
     // [REPORTES] public ReporteServicio getReporteServicio() {
         // [REPORTES] return reporteServicio;

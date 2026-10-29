@@ -1,0 +1,4 @@
+codigo;tipoDia;horaDesde;horaHasta;precioHora;tipoCancha;activa
+TAR-001;LUNES_VIERNES;08:00;17:00;150.00;TODOS;true
+TAR-002;LUNES_VIERNES;17:00;23:00;225.00;TODOS;true
+TAR-003;SABADO_DOMINGO;08:00;23:00;250.00;TODOS;true

@@ -2,6 +2,30 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/canchas/PnlCanchas.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/canchas/Cancha.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/canchas/CanchaRepositorio.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/canchas/CanchaServicio.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/canchas/CanchaTableModel.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/canchas/EstadoCancha.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/canchas/EstadoCanchaRenderer.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/canchas/OpcionTipoCancha.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/clientes/PnlClientes.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/clientes/ClienteTableModel.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/clientes/ClienteServicio.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/clientes/ClienteRepositorio.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/clientes/Cliente.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/disponibilidad/GrillaOcupacion.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/disponibilidad/PnlDisponibilidad.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/persistencia/RepositorioCsv.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/principal/FrmPrincipal.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/principal/PnlEnConstruccion.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/principal/Refrescable.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/reservas/FiltroReservas.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/reservas/PnlNuevaReserva.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/reservas/PnlReservas.java</file>
+            <file>file:/C:/Users/Marit/OneDrive/Documents/GitHub/CanchaPro/src/canchapro/tarifas/PnlTarifas.java</file>
+        </group>
     </open-files>
 </project-private>
