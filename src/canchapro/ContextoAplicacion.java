@@ -15,15 +15,15 @@ import canchapro.pagos.PagoServicio;
 import canchapro.persistencia.CargadorDatos;
 import canchapro.persistencia.ErrorCarga;
 import canchapro.persistencia.RegistroErroresCarga;
-// [REPORTES] import canchapro.reportes.ReporteCanchaMasUtilizada;
-// [REPORTES] import canchapro.reportes.ReporteClientesFrecuentes;
-// [REPORTES] import canchapro.reportes.ReporteHorariosMayorDemanda;
-// [REPORTES] import canchapro.reportes.ReporteIngresosPorPeriodo;
-// [REPORTES] import canchapro.reportes.ReportePagosPendientes;
-// [REPORTES] import canchapro.reportes.ReporteReservasCanceladas;
-// [REPORTES] import canchapro.reportes.ReporteReservasPorCancha;
-// [REPORTES] import canchapro.reportes.ReporteReservasPorFecha;
-// [REPORTES] import canchapro.reportes.ReporteServicio;
+import canchapro.reportes.ReporteCanchaMasUtilizada;
+import canchapro.reportes.ReporteClientesFrecuentes;
+import canchapro.reportes.ReporteHorariosMayorDemanda;
+import canchapro.reportes.ReporteIngresosPorPeriodo;
+import canchapro.reportes.ReportePagosPendientes;
+import canchapro.reportes.ReporteReservasCanceladas;
+import canchapro.reportes.ReporteReservasPorCancha;
+import canchapro.reportes.ReporteReservasPorFecha;
+import canchapro.reportes.ReporteServicio;
 import canchapro.reservas.OcupacionReservas;
 import canchapro.reservas.ReservaRepositorio;
 import canchapro.reservas.ReservaServicio;
@@ -73,7 +73,7 @@ public class ContextoAplicacion {
     private final PagoServicio pagoServicio;
     private final DashboardServicio dashboardServicio;
     // [TIENDA] private final TiendaServicio tiendaServicio;
-    // [REPORTES] private final ReporteServicio reporteServicio;
+    private final ReporteServicio reporteServicio;
     private final ConfiguracionServicio configuracionServicio;
     private final boolean administradorInicialCreado;
 
@@ -142,7 +142,7 @@ public class ContextoAplicacion {
         pagoServicio = new PagoServicio(pagoRepositorio, reservaServicio, configuracion, reloj);
         dashboardServicio = new DashboardServicio(reservaServicio, pagoServicio, canchaServicio, reloj);
         // [TIENDA] tiendaServicio = new TiendaServicio(productoRepositorio, ventaRepositorio, detalleVentaRepositorio, reloj);
-        // [REPORTES] reporteServicio = crearReportes(reloj);
+        reporteServicio = crearReportes(reloj);
         configuracionServicio = new ConfiguracionServicio(configuracion, configuracionRepositorio, carpetaDatos,
                 this::recargarDatos);
 
@@ -172,25 +172,25 @@ public class ContextoAplicacion {
         return registro;
     }
 
-    // [REPORTES] /**
-     // [REPORTES] * Registra los 8 reportes obligatorios. Los reportes se exportan a la
-     // [REPORTES] * carpeta "reportes", junto a la carpeta de datos.
-     // [REPORTES] */
-    // [REPORTES] private ReporteServicio crearReportes(Clock reloj) {
-        // [REPORTES] Path carpetaReportes = carpetaDatos.toAbsolutePath().getParent().resolve("reportes");
-        // [REPORTES] ReporteServicio servicio = new ReporteServicio(carpetaReportes, reloj);
-        // [REPORTES] servicio.registrar(new ReporteReservasPorFecha(reservaServicio));
-        // [REPORTES] servicio.registrar(new ReporteReservasPorCancha(reservaServicio, canchaServicio));
-        // [REPORTES] servicio.registrar(new ReporteIngresosPorPeriodo(reservaServicio, pagoServicio));
-        // [REPORTES] servicio.registrar(new ReportePagosPendientes(reservaServicio));
-        // [REPORTES] servicio.registrar(new ReporteReservasCanceladas(reservaServicio));
-        // [REPORTES] servicio.registrar(new ReporteCanchaMasUtilizada(reservaServicio, canchaServicio));
-        // [REPORTES] servicio.registrar(new ReporteHorariosMayorDemanda(reservaServicio));
-        // [REPORTES] servicio.registrar(new ReporteClientesFrecuentes(reservaServicio));
-        // [REPORTES] // Solo aparece si el módulo Tienda está activo.
+    /**
+     * Registra los 8 reportes obligatorios. Los reportes se exportan a la
+     * carpeta "reportes", junto a la carpeta de datos.
+     */
+    private ReporteServicio crearReportes(Clock reloj) {
+        Path carpetaReportes = carpetaDatos.toAbsolutePath().getParent().resolve("reportes");
+        ReporteServicio servicio = new ReporteServicio(carpetaReportes, reloj);
+        servicio.registrar(new ReporteReservasPorFecha(reservaServicio));
+        servicio.registrar(new ReporteReservasPorCancha(reservaServicio, canchaServicio));
+        servicio.registrar(new ReporteIngresosPorPeriodo(reservaServicio, pagoServicio));
+        servicio.registrar(new ReportePagosPendientes(reservaServicio));
+        servicio.registrar(new ReporteReservasCanceladas(reservaServicio));
+        servicio.registrar(new ReporteCanchaMasUtilizada(reservaServicio, canchaServicio));
+        servicio.registrar(new ReporteHorariosMayorDemanda(reservaServicio));
+        servicio.registrar(new ReporteClientesFrecuentes(reservaServicio));
+        // Solo aparece si el módulo Tienda está activo.
         // [TIENDA] servicio.registrar(new ReporteVentasTienda(tiendaServicio, configuracion));
-        // [REPORTES] return servicio;
-    // [REPORTES] }
+        return servicio;
+    }
 
     private Path resolverCarpetaDatos() {
         try {
@@ -251,9 +251,9 @@ public class ContextoAplicacion {
         return dashboardServicio;
     }
 
-    // [REPORTES] public ReporteServicio getReporteServicio() {
-        // [REPORTES] return reporteServicio;
-    // [REPORTES] }
+    public ReporteServicio getReporteServicio() {
+        return reporteServicio;
+    }
 
     public ConfiguracionServicio getConfiguracionServicio() {
         return configuracionServicio;

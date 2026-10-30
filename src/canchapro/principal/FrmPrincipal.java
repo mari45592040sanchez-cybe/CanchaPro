@@ -11,7 +11,7 @@ import canchapro.login.DlgCambiarPassword;
 import canchapro.login.FrmLogin;
 import canchapro.login.Sesion;
 import canchapro.pagos.PnlPagos;
-// [REPORTES] import canchapro.reportes.PnlReportes;
+import canchapro.reportes.PnlReportes;
 import canchapro.reservas.PnlModuloReservas;
 import canchapro.reservas.PnlNuevaReserva;
 import canchapro.reservas.PnlReservas;
@@ -245,7 +245,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
                             contexto.getConfiguracion(), sesion),
                     new PnlReservas(contexto.getReservaServicio(), contexto.getCanchaServicio(),
                             contexto.getConfiguracion(), sesion));
-            // [REPORTES] case REPORTES -> new PnlReportes(contexto.getReporteServicio(), contexto.getCanchaServicio());
+            case REPORTES -> new PnlReportes(contexto.getReporteServicio(), contexto.getCanchaServicio());
             case PAGOS -> new PnlPagos(contexto.getPagoServicio(), contexto.getReservaServicio(),
                     contexto.getConfiguracion(), sesion);
             case CANCHAS -> crearPanelCanchas();
