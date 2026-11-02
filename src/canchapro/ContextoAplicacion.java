@@ -31,11 +31,11 @@ import canchapro.servicios.ServicioAdicionalRepositorio;
 import canchapro.servicios.ServicioAdicionalServicio;
 import canchapro.tarifas.TarifaRepositorio;
 import canchapro.tarifas.TarifaServicio;
-// [TIENDA] import canchapro.tienda.DetalleVentaRepositorio;
-// [TIENDA] import canchapro.tienda.ProductoRepositorio;
-// [TIENDA] import canchapro.tienda.ReporteVentasTienda;
-// [TIENDA] import canchapro.tienda.TiendaServicio;
-// [TIENDA] import canchapro.tienda.VentaRepositorio;
+import canchapro.tienda.DetalleVentaRepositorio;
+import canchapro.tienda.ProductoRepositorio;
+import canchapro.tienda.ReporteVentasTienda;
+import canchapro.tienda.TiendaServicio;
+import canchapro.tienda.VentaRepositorio;
 import canchapro.usuarios.UsuarioRepositorio;
 import canchapro.usuarios.UsuarioServicio;
 import java.nio.file.InvalidPathException;
@@ -72,7 +72,7 @@ public class ContextoAplicacion {
     private final ReservaServicio reservaServicio;
     private final PagoServicio pagoServicio;
     private final DashboardServicio dashboardServicio;
-    // [TIENDA] private final TiendaServicio tiendaServicio;
+    private final TiendaServicio tiendaServicio;
     private final ReporteServicio reporteServicio;
     private final ConfiguracionServicio configuracionServicio;
     private final boolean administradorInicialCreado;
@@ -105,14 +105,14 @@ public class ContextoAplicacion {
         reservaRepositorio.setFuentePagos(pagoRepositorio::listar);
         pagoRepositorio.setAlCargar(reservaRepositorio::vincularPagos);
 
-        // [TIENDA] // Módulo Tienda: sus archivos se cargan siempre (aunque el módulo esté
-        // [TIENDA] // desactivado) para que los datos estén intactos al reactivarlo.
-        // [TIENDA] ProductoRepositorio productoRepositorio = new ProductoRepositorio(carpetaDatos);
-        // [TIENDA] VentaRepositorio ventaRepositorio = new VentaRepositorio(carpetaDatos, clienteRepositorio, usuarioRepositorio);
-        // [TIENDA] DetalleVentaRepositorio detalleVentaRepositorio = new DetalleVentaRepositorio(carpetaDatos,
-                // [TIENDA] ventaRepositorio::existe, productoRepositorio);
-        // [TIENDA] ventaRepositorio.setFuenteDetalles(detalleVentaRepositorio::listar);
-        // [TIENDA] detalleVentaRepositorio.setAlCargar(ventaRepositorio::vincularDetalles);
+        // Módulo Tienda: sus archivos se cargan siempre (aunque el módulo esté
+        // desactivado) para que los datos estén intactos al reactivarlo.
+        ProductoRepositorio productoRepositorio = new ProductoRepositorio(carpetaDatos);
+        VentaRepositorio ventaRepositorio = new VentaRepositorio(carpetaDatos, clienteRepositorio, usuarioRepositorio);
+        DetalleVentaRepositorio detalleVentaRepositorio = new DetalleVentaRepositorio(carpetaDatos,
+                ventaRepositorio::existe, productoRepositorio);
+        ventaRepositorio.setFuenteDetalles(detalleVentaRepositorio::listar);
+        detalleVentaRepositorio.setAlCargar(ventaRepositorio::vincularDetalles);
 
         cargador = new CargadorDatos(carpetaDatos);
         cargador.registrar(usuarioRepositorio);
@@ -122,9 +122,9 @@ public class ContextoAplicacion {
         cargador.registrar(servicioAdicionalRepositorio);
         cargador.registrar(reservaRepositorio);
         cargador.registrar(pagoRepositorio);
-        // [TIENDA] cargador.registrar(productoRepositorio);
-        // [TIENDA] cargador.registrar(ventaRepositorio);
-        // [TIENDA] cargador.registrar(detalleVentaRepositorio);
+        cargador.registrar(productoRepositorio);
+        cargador.registrar(ventaRepositorio);
+        cargador.registrar(detalleVentaRepositorio);
         cargador.cargarTodo(registroErrores);
         registroErrores.escribirLog(carpetaDatos);
 
@@ -141,7 +141,7 @@ public class ContextoAplicacion {
                 configuracion, reloj);
         pagoServicio = new PagoServicio(pagoRepositorio, reservaServicio, configuracion, reloj);
         dashboardServicio = new DashboardServicio(reservaServicio, pagoServicio, canchaServicio, reloj);
-        // [TIENDA] tiendaServicio = new TiendaServicio(productoRepositorio, ventaRepositorio, detalleVentaRepositorio, reloj);
+        tiendaServicio = new TiendaServicio(productoRepositorio, ventaRepositorio, detalleVentaRepositorio, reloj);
         reporteServicio = crearReportes(reloj);
         configuracionServicio = new ConfiguracionServicio(configuracion, configuracionRepositorio, carpetaDatos,
                 this::recargarDatos);
@@ -151,7 +151,7 @@ public class ContextoAplicacion {
         canchaServicio.asegurarDatosIniciales();
         tarifaServicio.asegurarDatosIniciales();
         servicioAdicionalServicio.asegurarDatosIniciales();
-        // [TIENDA] tiendaServicio.asegurarDatosIniciales();
+        tiendaServicio.asegurarDatosIniciales();
 
         // 5. Reservas que empezaron o terminaron mientras el programa estaba cerrado
         reservaServicio.actualizarEstadosAutomaticos();
@@ -188,7 +188,7 @@ public class ContextoAplicacion {
         servicio.registrar(new ReporteHorariosMayorDemanda(reservaServicio));
         servicio.registrar(new ReporteClientesFrecuentes(reservaServicio));
         // Solo aparece si el módulo Tienda está activo.
-        // [TIENDA] servicio.registrar(new ReporteVentasTienda(tiendaServicio, configuracion));
+        servicio.registrar(new ReporteVentasTienda(tiendaServicio, configuracion));
         return servicio;
     }
 
@@ -259,9 +259,9 @@ public class ContextoAplicacion {
         return configuracionServicio;
     }
 
-    // [TIENDA] public TiendaServicio getTiendaServicio() {
-        // [TIENDA] return tiendaServicio;
-    // [TIENDA] }
+    public TiendaServicio getTiendaServicio() {
+        return tiendaServicio;
+    }
 
     /** Errores encontrados al leer configuración y archivos de datos. */
     public RegistroErroresCarga getRegistroErrores() {

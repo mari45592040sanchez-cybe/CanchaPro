@@ -17,11 +17,11 @@ import canchapro.reservas.PnlNuevaReserva;
 import canchapro.reservas.PnlReservas;
 import canchapro.servicios.PnlServicios;
 import canchapro.tarifas.PnlTarifas;
-// [TIENDA] import canchapro.tienda.PnlModuloTienda;
-// [TIENDA] import canchapro.tienda.PnlProductos;
-// [TIENDA] import canchapro.tienda.PnlVentas;
-// [TIENDA] import canchapro.tienda.TiendaServicio;
-// [TIENDA] import canchapro.util.FormatoMoneda;
+import canchapro.tienda.PnlModuloTienda;
+import canchapro.tienda.PnlProductos;
+import canchapro.tienda.PnlVentas;
+import canchapro.tienda.TiendaServicio;
+import canchapro.util.FormatoMoneda;
 import canchapro.usuarios.Modulo;
 import canchapro.usuarios.PnlUsuarios;
 import canchapro.usuarios.Usuario;
@@ -31,7 +31,6 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.EnumMap;
-// [TIENDA] import java.util.List;
 import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -233,9 +232,9 @@ public class FrmPrincipal extends javax.swing.JFrame {
         return switch (modulo) {
             case DASHBOARD -> new PnlDashboard(contexto.getDashboardServicio(), this::irA, this::esVisible,
                     indicadoresTienda());
-            // [TIENDA] case TIENDA -> new PnlModuloTienda(
-                    // [TIENDA] new PnlVentas(contexto.getTiendaServicio(), contexto.getClienteServicio(), sesion),
-                    // [TIENDA] new PnlProductos(contexto.getTiendaServicio()));
+            case TIENDA -> new PnlModuloTienda(
+                    new PnlVentas(contexto.getTiendaServicio(), contexto.getClienteServicio(), sesion),
+                    new PnlProductos(contexto.getTiendaServicio()));
             case CLIENTES -> new PnlClientes(contexto.getClienteServicio());
             
             case DISPONIBILIDAD -> crearPanelDisponibilidad();
@@ -260,17 +259,14 @@ public class FrmPrincipal extends javax.swing.JFrame {
 
     /** Tarjetas de la Tienda para el inicio (solo si el módulo está activo y permitido). */
     private Indicador[] indicadoresTienda() {
-        // Mientras no se copie el módulo Tienda, el inicio no tiene tarjetas extra.
-        // Al activar [TIENDA] se reemplaza el return por las líneas comentadas de abajo.
-        return new Indicador[0];
-        // [TIENDA] if (!esVisible(Modulo.TIENDA)) {
-            // [TIENDA] return new Indicador[0];
-        // [TIENDA] }
-        // [TIENDA] TiendaServicio tienda = contexto.getTiendaServicio();
-        // [TIENDA] return new Indicador[]{
-                // [TIENDA] new Indicador("Tienda: vendido hoy", () -> FormatoMoneda.formatear(tienda.totalVendidoHoy())),
-                // [TIENDA] new Indicador("Tienda: productos con stock bajo",
-                        // [TIENDA] () -> String.valueOf(tienda.productosConStockBajo().length))};
+        if (!esVisible(Modulo.TIENDA)) {
+            return new Indicador[0];
+        }
+        TiendaServicio tienda = contexto.getTiendaServicio();
+        return new Indicador[]{
+                new Indicador("Tienda: vendido hoy", () -> FormatoMoneda.formatear(tienda.totalVendidoHoy())),
+                new Indicador("Tienda: productos con stock bajo",
+                        () -> String.valueOf(tienda.productosConStockBajo().length))};
     }
 
     /**
