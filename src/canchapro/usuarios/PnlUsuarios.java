@@ -2,10 +2,6 @@ package canchapro.usuarios;
 
 import canchapro.login.Sesion;
 import canchapro.util.excepciones.CanchaProException;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Set;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
@@ -24,7 +20,9 @@ public class PnlUsuarios extends javax.swing.JPanel {
     private final UsuarioServicio servicio;
     private final Sesion sesion;
     private final UsuarioTableModel modeloTabla = new UsuarioTableModel();
-    private final Map<Modulo, JCheckBox> casillasModulos = new EnumMap<>(Modulo.class);
+    // POO - Colecciones: una casilla por módulo; la posición es modulo.ordinal()
+    // (queda null en los módulos exclusivos del administrador, que no se asignan).
+    private final JCheckBox[] casillasModulos = new JCheckBox[Modulo.values().length];
     /** Código del usuario en edición; null cuando se registra uno nuevo. */
     private String codigoSeleccionado;
 
@@ -52,7 +50,7 @@ public class PnlUsuarios extends javax.swing.JPanel {
         for (Modulo modulo : Modulo.values()) {
             if (!modulo.isSoloAdministrador()) {
                 JCheckBox casilla = new JCheckBox(modulo.getNombreVisible());
-                casillasModulos.put(modulo, casilla);
+                casillasModulos[modulo.ordinal()] = casilla;
                 pnlModulos.add(casilla);
             }
         }
@@ -82,8 +80,12 @@ public class PnlUsuarios extends javax.swing.JPanel {
         txtPassword.setEnabled(false);
         lblEstadoValor.setText(usuario.isActivo() ? "Activo" : "Inactivo");
 
-        Set<Modulo> asignados = usuario instanceof Empleado empleado ? empleado.getModulos() : Set.of();
-        casillasModulos.forEach((modulo, casilla) -> casilla.setSelected(asignados.contains(modulo)));
+        for (Modulo modulo : Modulo.values()) {
+            JCheckBox casilla = casillasModulos[modulo.ordinal()];
+            if (casilla != null) {
+                casilla.setSelected(usuario instanceof Empleado empleado && empleado.tieneModulo(modulo));
+            }
+        }
         habilitarCasillas(usuario.getRol() == Rol.EMPLEADO);
 
         btnActivarDesactivar.setText(usuario.isActivo() ? "Desactivar" : "Activar");
@@ -104,7 +106,11 @@ public class PnlUsuarios extends javax.swing.JPanel {
         txtPassword.setText("");
         txtPassword.setEnabled(true);
         lblEstadoValor.setText("-");
-        casillasModulos.values().forEach(casilla -> casilla.setSelected(false));
+        for (JCheckBox casilla : casillasModulos) {
+            if (casilla != null) {
+                casilla.setSelected(false);
+            }
+        }
         habilitarCasillas(true);
         btnActivarDesactivar.setText("Desactivar");
         btnActivarDesactivar.setEnabled(false);
@@ -114,17 +120,29 @@ public class PnlUsuarios extends javax.swing.JPanel {
 
     /** Los administradores ven todos los módulos, por eso no se eligen. */
     private void habilitarCasillas(boolean habilitar) {
-        casillasModulos.values().forEach(casilla -> casilla.setEnabled(habilitar));
+        for (JCheckBox casilla : casillasModulos) {
+            if (casilla != null) {
+                casilla.setEnabled(habilitar);
+            }
+        }
     }
 
-    private Set<Modulo> modulosMarcados() {
-        Set<Modulo> marcados = EnumSet.noneOf(Modulo.class);
-        casillasModulos.forEach((modulo, casilla) -> {
-            if (casilla.isSelected()) {
-                marcados.add(modulo);
+    private Modulo[] modulosMarcados() {
+        Modulo[] todos = Modulo.values();
+        Modulo[] marcados = new Modulo[todos.length];
+        int cantidad = 0;
+        for (Modulo modulo : todos) {
+            JCheckBox casilla = casillasModulos[modulo.ordinal()];
+            if (casilla != null && casilla.isSelected()) {
+                marcados[cantidad] = modulo;
+                cantidad++;
             }
-        });
-        return marcados;
+        }
+        Modulo[] resultado = new Modulo[cantidad];
+        for (int i = 0; i < cantidad; i++) {
+            resultado[i] = marcados[i];
+        }
+        return resultado;
     }
 
     private void guardar() {

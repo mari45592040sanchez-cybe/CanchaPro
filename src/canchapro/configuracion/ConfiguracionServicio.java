@@ -6,8 +6,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 /**
@@ -26,8 +25,9 @@ public class ConfiguracionServicio {
     private final ConfiguracionRepositorio repositorio;
     private final Path carpetaDatos;
     private final Supplier<RegistroErroresCarga> recargador;
-    private final List<Runnable> oyentesCambios = new ArrayList<>();
-    private final List<Runnable> oyentesRecarga = new ArrayList<>();
+    // POO - Reutilización: la misma clase Oyentes sirve para los dos grupos de oyentes.
+    private final Oyentes oyentesCambios = new Oyentes();
+    private final Oyentes oyentesRecarga = new Oyentes();
 
     /**
      * @param recargador vuelve a leer todos los archivos y devuelve los errores encontrados
@@ -55,16 +55,16 @@ public class ConfiguracionServicio {
     // --- Observadores ---
 
     public void agregarOyenteCambios(Runnable oyente) {
-        oyentesCambios.add(oyente);
+        oyentesCambios.agregar(oyente);
     }
 
     public void agregarOyenteRecarga(Runnable oyente) {
-        oyentesRecarga.add(oyente);
+        oyentesRecarga.agregar(oyente);
     }
 
     public void quitarOyente(Runnable oyente) {
-        oyentesCambios.remove(oyente);
-        oyentesRecarga.remove(oyente);
+        oyentesCambios.quitar(oyente);
+        oyentesRecarga.quitar(oyente);
     }
 
     // --- Operaciones ---
@@ -85,7 +85,7 @@ public class ConfiguracionServicio {
         configuracion.setNombreNegocio(propuesta.getNombreNegocio());
         configuracion.setModuloTienda(propuesta.isModuloTienda());
         configuracion.setAnticipoMinimoPorcentaje(propuesta.getAnticipoMinimoPorcentaje());
-        notificar(oyentesCambios);
+        oyentesCambios.notificar();
     }
 
     /**
@@ -96,7 +96,7 @@ public class ConfiguracionServicio {
      */
     public RegistroErroresCarga recargarArchivos() {
         RegistroErroresCarga registro = recargador.get();
-        notificar(oyentesRecarga);
+        oyentesRecarga.notificar();
         return registro;
     }
 
@@ -107,16 +107,53 @@ public class ConfiguracionServicio {
             return "(No se han registrado errores de carga.)";
         }
         try {
-            List<String> lineas = Files.readAllLines(archivo, StandardCharsets.UTF_8);
-            int desde = Math.max(0, lineas.size() - LINEAS_BITACORA);
-            return String.join("\n", lineas.subList(desde, lineas.size()));
+            // POO - Colecciones: las líneas del archivo en un arreglo de String.
+            String[] lineas = Files.readString(archivo, StandardCharsets.UTF_8).split("\\r?\\n");
+            int desde = Math.max(0, lineas.length - LINEAS_BITACORA);
+            return String.join("\n", Arrays.copyOfRange(lineas, desde, lineas.length));
         } catch (IOException e) {
             throw new CanchaProException("No se pudo leer " + archivo.getFileName() + ": " + e.getMessage(), e);
         }
     }
 
-    private static void notificar(List<Runnable> oyentes) {
-        // Copia: un oyente podría quitarse a sí mismo mientras se notifica.
-        new ArrayList<>(oyentes).forEach(Runnable::run);
+    /**
+     * Grupo de oyentes guardado en un arreglo con su contador.
+     */
+    // POO - Encapsulamiento: el arreglo es privado; solo se agrega, se quita o se notifica.
+    // POO - Colecciones: arreglo de objetos Runnable; si se llena, se crea uno del doble de tamaño.
+    private static final class Oyentes {
+
+        private Runnable[] lista = new Runnable[4];
+        private int cantidad;
+
+        void agregar(Runnable oyente) {
+            if (cantidad == lista.length) {
+                lista = Arrays.copyOf(lista, lista.length * 2);
+            }
+            lista[cantidad] = oyente;
+            cantidad++;
+        }
+
+        /** Quita el oyente y corre una posición hacia arriba los siguientes. */
+        void quitar(Runnable oyente) {
+            for (int i = 0; i < cantidad; i++) {
+                if (lista[i] == oyente) {
+                    for (int j = i; j < cantidad - 1; j++) {
+                        lista[j] = lista[j + 1];
+                    }
+                    cantidad--;
+                    lista[cantidad] = null;
+                    return;
+                }
+            }
+        }
+
+        void notificar() {
+            // Copia: un oyente podría quitarse a sí mismo mientras se notifica.
+            Runnable[] copia = Arrays.copyOf(lista, cantidad);
+            for (Runnable oyente : copia) {
+                oyente.run();
+            }
+        }
     }
 }

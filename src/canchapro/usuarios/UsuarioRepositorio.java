@@ -4,10 +4,7 @@ import canchapro.persistencia.CamposCsv;
 import canchapro.persistencia.RepositorioCsv;
 import canchapro.util.Validador;
 import java.nio.file.Path;
-import java.util.EnumSet;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Usuarios del sistema guardados en usuarios.csv:
@@ -84,9 +81,12 @@ public class UsuarioRepositorio extends RepositorioCsv<Usuario> {
     protected String aCsv(Usuario u) {
         String modulos = "";
         if (u instanceof Empleado empleado) {
-            modulos = empleado.getModulos().stream()
-                    .map(Modulo::name)
-                    .collect(Collectors.joining(SEPARADOR_MODULOS));
+            Modulo[] asignados = empleado.getModulos();
+            String[] nombres = new String[asignados.length];
+            for (int i = 0; i < asignados.length; i++) {
+                nombres[i] = asignados[i].name();
+            }
+            modulos = String.join(SEPARADOR_MODULOS, nombres);
         }
         return String.join(";",
                 u.getCodigo(), u.getRol().name(), u.getNombre(), u.getTelefono(), u.getCorreo(),
@@ -99,12 +99,14 @@ public class UsuarioRepositorio extends RepositorioCsv<Usuario> {
         return new Usuario[tamanio];
     }
 
-    private Set<Modulo> leerModulos(String texto) {
-        Set<Modulo> modulos = EnumSet.noneOf(Modulo.class);
-        if (texto != null && !texto.isBlank()) {
-            for (String nombre : texto.split("\\|")) {
-                modulos.add(CamposCsv.enumeracion(Modulo.class, nombre, "modulos"));
-            }
+    private Modulo[] leerModulos(String texto) {
+        if (texto == null || texto.isBlank()) {
+            return new Modulo[0];
+        }
+        String[] nombres = texto.split("\\|");
+        Modulo[] modulos = new Modulo[nombres.length];
+        for (int i = 0; i < nombres.length; i++) {
+            modulos[i] = CamposCsv.enumeracion(Modulo.class, nombres[i], "modulos");
         }
         return modulos;
     }

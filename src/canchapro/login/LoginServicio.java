@@ -7,9 +7,8 @@ import canchapro.util.excepciones.DatosInvalidosException;
 import canchapro.util.excepciones.ReglaNegocioException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -25,7 +24,9 @@ public class LoginServicio {
     // POO - Relaciones (composición): usa el repositorio de usuarios para buscar al usuario.
     private final UsuarioRepositorio repositorio;
     /** Intentos fallidos por nombre de usuario (solo en memoria). */
-    private final Map<String, IntentosFallidos> intentos = new HashMap<>();
+    // POO - Colecciones: arreglo de objetos IntentosFallidos + contador; cada uno guarda su username.
+    private IntentosFallidos[] intentos = new IntentosFallidos[10];
+    private int cantidadIntentos;
 
     public LoginServicio(UsuarioRepositorio repositorio) {
         this.repositorio = repositorio;
@@ -43,7 +44,7 @@ public class LoginServicio {
             throw new AutenticacionException("Ingrese usuario y contraseña.");
         }
         String clave = username.trim().toLowerCase(Locale.ROOT);
-        IntentosFallidos registro = intentos.computeIfAbsent(clave, k -> new IntentosFallidos());
+        IntentosFallidos registro = obtenerIntentos(clave);
         registro.verificarBloqueo();
 
         Optional<Usuario> encontrado = repositorio.buscarPorUsername(username);
@@ -55,8 +56,38 @@ public class LoginServicio {
         if (!usuario.isActivo()) {
             throw new AutenticacionException("El usuario está desactivado. Contacte al administrador.");
         }
-        intentos.remove(clave);
+        quitarIntentos(clave);
         return new Sesion(usuario);
+    }
+
+    /** Busca el registro de intentos del username; si no existe, lo crea al final del arreglo. */
+    private IntentosFallidos obtenerIntentos(String clave) {
+        for (int i = 0; i < cantidadIntentos; i++) {
+            if (intentos[i].clave.equals(clave)) {
+                return intentos[i];
+            }
+        }
+        if (cantidadIntentos == intentos.length) {
+            intentos = Arrays.copyOf(intentos, intentos.length * 2);
+        }
+        IntentosFallidos nuevo = new IntentosFallidos(clave);
+        intentos[cantidadIntentos] = nuevo;
+        cantidadIntentos++;
+        return nuevo;
+    }
+
+    /** Al iniciar sesión correctamente se borran sus intentos (los siguientes se corren una posición). */
+    private void quitarIntentos(String clave) {
+        for (int i = 0; i < cantidadIntentos; i++) {
+            if (intentos[i].clave.equals(clave)) {
+                for (int j = i; j < cantidadIntentos - 1; j++) {
+                    intentos[j] = intentos[j + 1];
+                }
+                cantidadIntentos--;
+                intentos[cantidadIntentos] = null;
+                return;
+            }
+        }
     }
 
     /**
@@ -79,10 +110,16 @@ public class LoginServicio {
     }
 
     /** Control de intentos fallidos de un nombre de usuario. */
+    // POO - Encapsulamiento: clase privada; solo LoginServicio controla los intentos.
     private static class IntentosFallidos {
 
+        private final String clave;
         private int cantidad;
         private LocalDateTime bloqueadoHasta;
+
+        IntentosFallidos(String clave) {
+            this.clave = clave;
+        }
 
         void verificarBloqueo() {
             if (bloqueadoHasta == null) {

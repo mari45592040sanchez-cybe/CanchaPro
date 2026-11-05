@@ -30,8 +30,7 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.Arrays;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -58,9 +57,11 @@ public class FrmPrincipal extends javax.swing.JFrame {
     // POO - Relaciones: la ventana usa el contexto (servicios) y la sesión del usuario conectado.
     private final ContextoAplicacion contexto;
     private final Sesion sesion;
-    // POO - Colecciones: mapa módulo -> pantalla ya creada (cada pantalla se crea una sola vez).
-    private final Map<Modulo, JComponent> paneles = new EnumMap<>(Modulo.class);
-    private final Map<Modulo, JButton> botones = new EnumMap<>(Modulo.class);
+    // POO - Colecciones: arreglos con una posición por módulo (la posición es modulo.ordinal()).
+    // paneles[i] = pantalla ya creada del módulo i (null si aún no se abrió);
+    // botones[i] = botón del menú del módulo i (null si el usuario no lo ve).
+    private final JComponent[] paneles = new JComponent[Modulo.values().length];
+    private final JButton[] botones = new JButton[Modulo.values().length];
     private final Timer temporizadorEstados;
     private Modulo moduloActual;
     /** Oyentes registrados en Configuración (patrón Observador). */
@@ -104,7 +105,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
     }
 
     private void refrescarModuloActual() {
-        if (moduloActual != null && paneles.get(moduloActual) instanceof Refrescable refrescable) {
+        if (moduloActual != null && paneles[moduloActual.ordinal()] instanceof Refrescable refrescable) {
             refrescable.refrescar();
         }
     }
@@ -130,7 +131,8 @@ public class FrmPrincipal extends javax.swing.JFrame {
     }
 
     private void descartarPanel(Modulo modulo) {
-        JComponent panel = paneles.remove(modulo);
+        JComponent panel = paneles[modulo.ordinal()];
+        paneles[modulo.ordinal()] = null;
         if (panel != null) {
             pnlContenido.remove(panel);
         }
@@ -142,7 +144,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
      */
     private void datosRecargados() {
         Modulo actual = moduloActual;
-        paneles.clear();
+        Arrays.fill(paneles, null);
         pnlContenido.removeAll();
         moduloActual = null;
         construirMenu(actual);
@@ -171,7 +173,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
      */
     private void construirMenu(Modulo preferido) {
         pnlMenu.removeAll();
-        botones.clear();
+        Arrays.fill(botones, null);
         Modulo primero = null;
         boolean seccionAdminAgregada = false;
 
@@ -186,7 +188,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
                 seccionAdminAgregada = true;
             }
             JButton boton = crearBotonMenu(modulo);
-            botones.put(modulo, boton);
+            botones[modulo.ordinal()] = boton;
             pnlMenu.add(boton);
             pnlMenu.add(Box.createVerticalStrut(4));
             if (primero == null) {
@@ -213,18 +215,22 @@ public class FrmPrincipal extends javax.swing.JFrame {
         if (!esVisible(modulo)) {
             return;
         }
-        if (!paneles.containsKey(modulo)) {
+        if (paneles[modulo.ordinal()] == null) {
             JComponent panel = crearPanel(modulo);
-            paneles.put(modulo, panel);
+            paneles[modulo.ordinal()] = panel;
             pnlContenido.add(panel, modulo.name());
         // POO - Polimorfismo (interfaz): cualquier pantalla que implemente Refrescable se actualiza igual.
-        } else if (modulo != moduloActual && paneles.get(modulo) instanceof Refrescable refrescable) {
+        } else if (modulo != moduloActual && paneles[modulo.ordinal()] instanceof Refrescable refrescable) {
             // Los datos pudieron cambiar en otro módulo.
             refrescable.refrescar();
         }
         moduloActual = modulo;
         ((CardLayout) pnlContenido.getLayout()).show(pnlContenido, modulo.name());
-        botones.forEach((m, boton) -> boton.setBackground(m == modulo ? COLOR_SELECCIONADO : COLOR_MENU));
+        for (int i = 0; i < botones.length; i++) {
+            if (botones[i] != null) {
+                botones[i].setBackground(i == modulo.ordinal() ? COLOR_SELECCIONADO : COLOR_MENU);
+            }
+        }
     }
 
     // POO - Polimorfismo: todas las pantallas se tratan como JComponent, sin importar su clase concreta.
@@ -275,7 +281,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
      */
     private void irA(Modulo modulo) {
         mostrarModulo(modulo);
-        if (modulo == Modulo.RESERVAS && paneles.get(modulo) instanceof PnlModuloReservas reservas) {
+        if (modulo == Modulo.RESERVAS && paneles[modulo.ordinal()] instanceof PnlModuloReservas reservas) {
             reservas.mostrarNuevaReserva();
         }
     }
@@ -286,7 +292,7 @@ public class FrmPrincipal extends javax.swing.JFrame {
         if (esVisible(Modulo.RESERVAS)) {
             panel.setAlReservar((solicitud, cancha) -> {
                 mostrarModulo(Modulo.RESERVAS);
-                ((PnlModuloReservas) paneles.get(Modulo.RESERVAS)).nuevaReserva(solicitud, cancha);
+                ((PnlModuloReservas) paneles[Modulo.RESERVAS.ordinal()]).nuevaReserva(solicitud, cancha);
             });
         }
         return panel;

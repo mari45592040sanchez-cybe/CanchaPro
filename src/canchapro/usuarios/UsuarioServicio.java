@@ -6,8 +6,6 @@ import canchapro.util.excepciones.EntidadNoEncontradaException;
 import canchapro.util.excepciones.ReglaNegocioException;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.Set;
 
 /**
  * Reglas de negocio para la gestión de usuarios (administradores y empleados).
@@ -71,7 +69,7 @@ public class UsuarioServicio {
      * @param modulos módulos visibles (solo aplica a empleados)
      */
     public Usuario registrar(Rol rol, String nombre, String telefono, String correo,
-            String username, String passwordInicial, Set<Modulo> modulos) {
+            String username, String passwordInicial, Modulo[] modulos) {
         if (rol == null) {
             throw new ReglaNegocioException("Seleccione el rol del usuario.");
         }
@@ -100,7 +98,7 @@ public class UsuarioServicio {
      * dejarlo a medio actualizar si algún dato es inválido.
      */
     public Usuario actualizar(String codigo, String nombre, String telefono, String correo,
-            String username, Set<Modulo> modulos) {
+            String username, Modulo[] modulos) {
         Usuario usuario = obtener(codigo);
 
         String nombreValido = Persona.validarNombre(nombre);
@@ -108,14 +106,13 @@ public class UsuarioServicio {
         String correoValido = Persona.validarCorreo(correo);
         String usernameValido = Usuario.validarUsername(username);
         validarUsernameDisponible(usernameValido, codigo);
-        Set<Modulo> modulosValidos = copiar(modulos);
+        Modulo[] modulosValidos = copiar(modulos);
         if (usuario instanceof Empleado) {
-            modulosValidos.stream()
-                    .filter(Modulo::isSoloAdministrador)
-                    .findFirst()
-                    .ifPresent(m -> {
-                        throw new ReglaNegocioException("El módulo '" + m + "' es exclusivo del administrador.");
-                    });
+            for (Modulo m : modulosValidos) {
+                if (m.isSoloAdministrador()) {
+                    throw new ReglaNegocioException("El módulo '" + m + "' es exclusivo del administrador.");
+                }
+            }
         }
 
         usuario.setNombre(nombreValido);
@@ -179,7 +176,7 @@ public class UsuarioServicio {
         return GeneradorCodigo.siguiente(PREFIJO_CODIGO, 3, repositorio.codigos());
     }
 
-    private static Set<Modulo> copiar(Set<Modulo> modulos) {
-        return modulos == null || modulos.isEmpty() ? EnumSet.noneOf(Modulo.class) : EnumSet.copyOf(modulos);
+    private static Modulo[] copiar(Modulo[] modulos) {
+        return modulos == null ? new Modulo[0] : Arrays.copyOf(modulos, modulos.length);
     }
 }

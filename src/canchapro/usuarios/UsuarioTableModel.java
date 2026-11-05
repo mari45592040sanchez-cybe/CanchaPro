@@ -1,6 +1,5 @@
 package canchapro.usuarios;
 
-import java.util.stream.Collectors;
 import javax.swing.table.AbstractTableModel;
 
 /**
@@ -69,9 +68,15 @@ public class UsuarioTableModel extends AbstractTableModel {
 
     private static String describirModulos(Usuario u) {
         if (u instanceof Empleado empleado) {
-            return empleado.getModulos().isEmpty()
-                    ? "(ninguno)"
-                    : empleado.getModulos().stream().map(Modulo::getNombreVisible).collect(Collectors.joining(", "));
+            Modulo[] modulos = empleado.getModulos();
+            if (modulos.length == 0) {
+                return "(ninguno)";
+            }
+            String[] nombres = new String[modulos.length];
+            for (int i = 0; i < modulos.length; i++) {
+                nombres[i] = modulos[i].getNombreVisible();
+            }
+            return String.join(", ", nombres);
         }
         return "Todos";
     }
