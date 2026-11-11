@@ -6,9 +6,6 @@ import canchapro.util.excepciones.CanchaProException;
 import java.util.Arrays;
 import javax.swing.JOptionPane;
 
-/**
- * Pantalla de inicio de sesión.
- */
 // POO - Herencia: la ventana de inicio de sesión extiende JFrame de Swing.
 public class FrmLogin extends javax.swing.JFrame {
 

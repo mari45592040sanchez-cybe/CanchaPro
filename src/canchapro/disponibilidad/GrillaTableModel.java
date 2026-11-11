@@ -3,10 +3,6 @@ package canchapro.disponibilidad;
 import canchapro.canchas.Cancha;
 import javax.swing.table.AbstractTableModel;
 
-/**
- * Adapta una {@link GrillaOcupacion} a una tabla: la primera columna es la
- * hora y cada columna siguiente es una cancha.
- */
 // POO - Herencia: extiende AbstractTableModel de Swing.
 // POO - Relaciones: el modelo TIENE una grilla de ocupación y la adapta para mostrarla en la tabla.
 public class GrillaTableModel extends AbstractTableModel {

@@ -24,10 +24,6 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/**
- * Reglas de negocio de las reservas: preparar, confirmar, cobrar, cancelar,
- * avanzar estados según la hora y consultar.
- */
 // POO - Responsabilidad: reglas de negocio de reservas (doble validación de disponibilidad, anticipo, estados).
 public class ReservaServicio {
 
@@ -53,12 +49,6 @@ public class ReservaServicio {
         this.reloj = reloj;
     }
 
-    // --- Crear reservas ---
-
-    /**
-     * Calcula la reserva sin guardarla, para mostrar el resumen.
-     * Valida cliente activo, disponibilidad de la cancha y servicios.
-     */
     public ReservaBorrador prepararReserva(Cliente cliente, SolicitudDisponibilidad solicitud, Cancha cancha,
             SolicitudServicio[] serviciosSolicitados) {
         if (cliente == null) {
@@ -87,16 +77,8 @@ public class ReservaServicio {
         return new ReservaBorrador(cliente, cancha, solicitud, precioCancha, items, total, anticipoMinimo(total));
     }
 
-    /**
-     * Guarda la reserva. Antes vuelve a verificar la disponibilidad, por si
-     * otra persona reservó el mismo horario mientras se llenaba el formulario.
-     *
-     * @param montoInicial anticipo recibido, o null/0 si no se paga nada aún
-     * @return la reserva creada (PENDIENTE, o CONFIRMADA si se pagó el anticipo mínimo)
-     */
     public Reserva confirmarReserva(ReservaBorrador borrador, BigDecimal montoInicial, MetodoPago metodo,
             String observacion, Usuario usuario) {
-        // Se recalcula todo con los datos actuales (no se confía en el borrador).
         ReservaServicioItem[] itemsBorrador = borrador.servicios();
         SolicitudServicio[] solicitados = new SolicitudServicio[itemsBorrador.length];
         for (int i = 0; i < itemsBorrador.length; i++) {
@@ -135,12 +117,6 @@ public class ReservaServicio {
         return reserva;
     }
 
-    // --- Pagos ---
-
-    /**
-     * Registra un abono. Si con él se alcanza el anticipo mínimo, la reserva
-     * pasa de PENDIENTE a CONFIRMADA.
-     */
     public Pago registrarPago(String codigoReserva, BigDecimal monto, MetodoPago metodo, String observacion,
             Usuario usuario) {
         Reserva reserva = obtener(codigoReserva);
@@ -153,7 +129,6 @@ public class ReservaServicio {
         return pago;
     }
 
-    /** Monto que debe pagarse para que una reserva quede confirmada. */
     public BigDecimal anticipoMinimo(BigDecimal total) {
         return total.multiply(BigDecimal.valueOf(configuracion.getAnticipoMinimoPorcentaje()))
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
@@ -163,13 +138,6 @@ public class ReservaServicio {
         return GeneradorCodigo.siguiente(PREFIJO_PAGO, 5, pagos.codigos());
     }
 
-    // --- Cancelar y estados ---
-
-    /**
-     * Cancela la reserva (solo PENDIENTE o CONFIRMADA). La reserva no se
-     * elimina: queda en el historial con fecha, motivo y usuario, y su
-     * horario se libera.
-     */
     public void cancelar(String codigo, String motivo, Usuario usuario) {
         Reserva reserva = obtener(codigo);
         reserva.cancelar(motivo, usuario, LocalDateTime.now(reloj));
@@ -177,12 +145,6 @@ public class ReservaServicio {
         reservas.guardar();
     }
 
-    /**
-     * Pasa a EN_CURSO las reservas que ya empezaron y a FINALIZADA las que
-     * ya terminaron. Se ejecuta al iniciar y cada minuto.
-     *
-     * @return cantidad de reservas que cambiaron de estado
-     */
     public int actualizarEstadosAutomaticos() {
         LocalDateTime ahora = LocalDateTime.now(reloj);
         int cambios = 0;
@@ -196,8 +158,6 @@ public class ReservaServicio {
         }
         return cambios;
     }
-
-    // --- Consultas ---
 
     public Reserva obtener(String codigo) {
         return reservas.buscar(codigo)
@@ -246,10 +206,23 @@ public class ReservaServicio {
         return resultado;
     }
 
-    /**
-     * Reservas aún no realizadas (pendientes o confirmadas, desde hoy) de una
-     * cancha. Se usan para advertir al poner la cancha en mantenimiento.
-     */
+    // POO - Colecciones: arreglo con las reservas del cliente que todavía tienen saldo pendiente
+    // (las únicas a las que la tienda puede cargar una factura unificada).
+    public Reserva[] reservasConSaldo(String codigoCliente) {
+        Reserva[] todas = reservas.listar();
+        Reserva[] encontradas = new Reserva[todas.length];
+        int cantidad = 0;
+        for (Reserva r : todas) {
+            if (r.getCliente().getCodigo().equals(codigoCliente) && r.aceptaConsumos()) {
+                encontradas[cantidad] = r;
+                cantidad++;
+            }
+        }
+        Reserva[] resultado = Arrays.copyOf(encontradas, cantidad);
+        Arrays.sort(resultado, CRONOLOGICO);
+        return resultado;
+    }
+
     public Reserva[] reservasFuturasActivas(String codigoCancha) {
         LocalDateTime ahora = LocalDateTime.now(reloj);
         Reserva[] todas = reservas.listar();
@@ -267,7 +240,6 @@ public class ReservaServicio {
         return resultado;
     }
 
-    /** Descripción de las reservas futuras de una cancha (para el aviso de la pantalla de Canchas). */
     public String[] describirReservasFuturas(String codigoCancha) {
         Reserva[] futuras = reservasFuturasActivas(codigoCancha);
         String[] descripciones = new String[futuras.length];
@@ -278,8 +250,6 @@ public class ReservaServicio {
     }
 
     private void guardarTodo() {
-        // Primero los pagos: si fallara la escritura de reservas, al reiniciar
-        // el pago sigue asociado a su reserva por el código.
         try {
             pagos.guardar();
             reservas.guardar();

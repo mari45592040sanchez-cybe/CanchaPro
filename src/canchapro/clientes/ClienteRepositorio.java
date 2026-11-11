@@ -7,10 +7,6 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Optional;
 
-/**
- * Clientes guardados en clientes.csv:
- * codigo;nombre;telefono;correo;fechaRegistro;activo
- */
 // POO - Herencia / Reutilización: hereda de RepositorioCsv toda la lógica de cargar, guardar y buscar;
 // aquí solo se define el formato del archivo de clientes.
 public class ClienteRepositorio extends RepositorioCsv<Cliente> {
@@ -21,7 +17,6 @@ public class ClienteRepositorio extends RepositorioCsv<Cliente> {
         super(carpetaDatos.resolve(ARCHIVO));
     }
 
-    /** Busca por teléfono entre todos los clientes (activos e inactivos). */
     public Optional<Cliente> buscarPorTelefono(String telefono) {
         if (telefono == null || telefono.isBlank()) {
             return Optional.empty();
@@ -36,7 +31,6 @@ public class ClienteRepositorio extends RepositorioCsv<Cliente> {
         return Optional.empty();
     }
 
-    // --- Formato del archivo ---
     // POO - Polimorfismo: sobrescritura (@Override) de los métodos abstractos de RepositorioCsv.
 
     @Override

@@ -21,11 +21,6 @@ import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 
-/**
- * Consulta de disponibilidad: el usuario indica fecha, hora, duración y
- * tipo de cancha, y el sistema determina qué canchas se pueden reservar.
- * Abajo se muestra la ocupación del día por cancha y por bloque de 30 minutos.
- */
 // POO - Herencia: extiende JPanel. POO - Polimorfismo: implementa Refrescable (la ventana principal la refresca).
 public class PnlDisponibilidad extends javax.swing.JPanel implements Refrescable {
 
@@ -35,11 +30,8 @@ public class PnlDisponibilidad extends javax.swing.JPanel implements Refrescable
     private final DisponibilidadServicio servicio;
     private final ResultadoTableModel modeloResultados = new ResultadoTableModel();
     private final GrillaTableModel modeloGrilla = new GrillaTableModel();
-    /** Última consulta realizada, para resaltarla en la grilla. */
     private SolicitudDisponibilidad ultimaSolicitud;
-    /** Evita redibujar la grilla mientras se configuran los controles. */
     private boolean inicializado;
-    /** Acción del botón Reservar; null si el usuario no tiene acceso a Reservas. */
     private BiConsumer<SolicitudDisponibilidad, Cancha> alReservar;
 
     public PnlDisponibilidad(DisponibilidadServicio servicio) {
@@ -74,10 +66,6 @@ public class PnlDisponibilidad extends javax.swing.JPanel implements Refrescable
         actualizarGrilla();
     }
 
-    /**
-     * Habilita el botón "Reservar", que abre Nueva Reserva con el horario y
-     * la cancha seleccionados.
-     */
     public void setAlReservar(BiConsumer<SolicitudDisponibilidad, Cancha> accion) {
         this.alReservar = accion;
         pnlAcciones.setVisible(accion != null);
@@ -90,7 +78,6 @@ public class PnlDisponibilidad extends javax.swing.JPanel implements Refrescable
             try {
                 modeloResultados.setResultados(servicio.consultar(ultimaSolicitud));
             } catch (CanchaProException e) {
-                // La consulta anterior ya no es válida (por ejemplo, la hora pasó).
                 modeloResultados.setResultados(new ResultadoDisponibilidad[0]);
                 ultimaSolicitud = null;
             }
@@ -114,7 +101,6 @@ public class PnlDisponibilidad extends javax.swing.JPanel implements Refrescable
         }
     }
 
-    /** Próxima hora en punto o y media a partir de ahora (o la primera del día). */
     private LocalTime siguienteHoraSugerida() {
         LocalTime ahora = servicio.horaActual();
         LocalTime sugerida = ahora.withMinute(ahora.getMinute() < 30 ? 30 : 0);
@@ -177,7 +163,6 @@ public class PnlDisponibilidad extends javax.swing.JPanel implements Refrescable
         }
     }
 
-    /** Redibuja la grilla del día seleccionado, resaltando la última consulta si corresponde. */
     private void actualizarGrilla() {
         LocalDate fecha = SelectorFecha.obtener(spnFecha);
         SolicitudDisponibilidad resaltar = ultimaSolicitud != null && ultimaSolicitud.fecha().equals(fecha)

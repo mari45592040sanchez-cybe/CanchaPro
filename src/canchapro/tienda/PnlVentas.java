@@ -6,6 +6,7 @@ import canchapro.clientes.DlgBuscarCliente;
 import canchapro.login.Sesion;
 import canchapro.pagos.MetodoPago;
 import canchapro.principal.Refrescable;
+import canchapro.reservas.Reserva;
 import canchapro.util.Dialogos;
 import canchapro.util.FormatoFecha;
 import canchapro.util.FormatoMoneda;
@@ -13,6 +14,7 @@ import canchapro.util.excepciones.CanchaProException;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
@@ -21,10 +23,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-/**
- * Punto de venta de la tienda: elegir productos, armar el carrito, cobrar y
- * consultar o anular las ventas del día.
- */
 // POO - Herencia: la pantalla extiende JPanel de Swing.
 // POO - Relaciones: usa TiendaServicio y ClienteServicio (cliente opcional en la venta).
 public class PnlVentas extends javax.swing.JPanel implements Refrescable {
@@ -45,6 +43,10 @@ public class PnlVentas extends javax.swing.JPanel implements Refrescable {
 
         spnCantidad.setModel(new SpinnerNumberModel(1, 1, 999, 1));
         cboMetodo.setModel(new DefaultComboBoxModel<>(MetodoPago.values()));
+        // POO - Relaciones: el grupo hace que solo uno de los dos checks de factura quede marcado.
+        ButtonGroup grupoFactura = new ButtonGroup();
+        grupoFactura.add(chkIndividual);
+        grupoFactura.add(chkUnificada);
 
         tblCatalogo.setModel(modeloCatalogo);
         tblCatalogo.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -90,6 +92,7 @@ public class PnlVentas extends javax.swing.JPanel implements Refrescable {
         cargarCatalogo();
         cargarVentasDeHoy();
         actualizarTotal();
+        actualizarFactura();
     }
 
     private void cargarCatalogo() {
@@ -115,7 +118,6 @@ public class PnlVentas extends javax.swing.JPanel implements Refrescable {
         Producto producto = modeloCatalogo.getProducto(fila);
         int cantidad = (Integer) spnCantidad.getValue();
         try {
-            // Se verifica contra lo que ya hay en el carrito.
             servicio.verificarStock(producto, modeloCarrito.cantidadDe(producto) + cantidad);
             modeloCarrito.agregar(producto, cantidad);
             spnCantidad.setValue(1);
@@ -135,15 +137,33 @@ public class PnlVentas extends javax.swing.JPanel implements Refrescable {
 
     private void confirmar() {
         try {
-            Venta venta = servicio.registrarVenta(cliente, modeloCarrito.getItems(),
-                    (MetodoPago) cboMetodo.getSelectedItem(), sesion.getUsuario());
-            Dialogos.mostrarTexto(this, "Venta registrada", "Venta " + venta.getCodigo() + " registrada.", detalle(venta));
+            Venta venta;
+            String encabezado;
+            if (chkUnificada.isSelected()) {
+                if (cliente == null) {
+                    mostrarAdvertencia("Para la factura unificada debe elegir el cliente.");
+                    return;
+                }
+                Reserva reserva = elegirReserva();
+                if (reserva == null) {
+                    return;
+                }
+                venta = servicio.registrarVentaUnificada(cliente, reserva.getCodigo(), modeloCarrito.getItems(),
+                        sesion.getUsuario());
+                encabezado = "Venta " + venta.getCodigo() + " cargada a la reserva " + reserva.getCodigo()
+                        + ". Saldo de la reserva: " + FormatoMoneda.formatear(reserva.getSaldo());
+            } else {
+                venta = servicio.registrarVenta(cliente, modeloCarrito.getItems(),
+                        (MetodoPago) cboMetodo.getSelectedItem(), sesion.getUsuario());
+                encabezado = "Venta " + venta.getCodigo() + " registrada.";
+            }
+            Dialogos.mostrarTexto(this, "Venta registrada", encabezado, detalle(venta));
             modeloCarrito.vaciar();
+            chkIndividual.setSelected(true);
             quitarCliente();
             refrescar();
         } catch (CanchaProException e) {
             mostrarAdvertencia(e.getMessage());
-            // El inventario pudo cambiar: se muestra la existencia actual.
             cargarCatalogo();
         }
     }
@@ -162,8 +182,11 @@ public class PnlVentas extends javax.swing.JPanel implements Refrescable {
             return;
         }
         Venta venta = modeloVentas.getVenta(fila);
+        String aviso = venta.esUnificada()
+                ? "\nEl cargo se quita de la reserva " + venta.getCodigoReserva() + "."
+                : "";
         int opcion = JOptionPane.showConfirmDialog(this, "¿Anular la venta " + venta.getCodigo() + " por "
-                + FormatoMoneda.formatear(venta.getTotal()) + "?\nLas unidades vuelven al inventario.",
+                + FormatoMoneda.formatear(venta.getTotal()) + "?\nLas unidades vuelven al inventario." + aviso,
                 "Anular venta", JOptionPane.YES_NO_OPTION);
         if (opcion == JOptionPane.YES_OPTION) {
             try {
@@ -179,21 +202,80 @@ public class PnlVentas extends javax.swing.JPanel implements Refrescable {
         DlgBuscarCliente.seleccionar(SwingUtilities.getWindowAncestor(this), clienteServicio).ifPresent(c -> {
             cliente = c;
             lblClienteValor.setText(c.getDescripcion());
+            actualizarFactura();
         });
     }
 
     private void quitarCliente() {
         cliente = null;
         lblClienteValor.setText("(venta de mostrador)");
+        actualizarFactura();
     }
 
-    /** Texto con las líneas de una venta (letra de ancho fijo). */
+    // POO - Método: ajusta la pantalla según el check de factura marcado. En la factura unificada
+    // no se elige método de pago y se muestra la reserva del cliente que recibirá el cargo.
+    private void actualizarFactura() {
+        boolean unificada = chkUnificada.isSelected();
+        lblMetodo.setEnabled(!unificada);
+        cboMetodo.setEnabled(!unificada);
+        if (!unificada) {
+            lblReservaValor.setText("(no aplica)");
+            return;
+        }
+        if (cliente == null) {
+            lblReservaValor.setText("Elija el cliente para buscar su reserva.");
+            return;
+        }
+        // POO - Colecciones: arreglo de objetos Reserva con saldo pendiente del cliente.
+        Reserva[] reservas = servicio.reservasParaFacturaUnificada(cliente);
+        if (reservas.length == 0) {
+            lblReservaValor.setText("El cliente no tiene reservas con saldo.");
+        } else if (reservas.length == 1) {
+            lblReservaValor.setText(describir(reservas[0]));
+        } else {
+            lblReservaValor.setText(reservas.length + " reservas con saldo (se elige al confirmar).");
+        }
+    }
+
+    // POO - Método: devuelve la reserva a la que se cargará la venta, o null si no hay o no se eligió.
+    private Reserva elegirReserva() {
+        Reserva[] reservas = servicio.reservasParaFacturaUnificada(cliente);
+        if (reservas.length == 0) {
+            mostrarAdvertencia("El cliente " + cliente.getNombre() + " no tiene reservas con saldo pendiente.\n"
+                    + "Use la factura individual.");
+            return null;
+        }
+        if (reservas.length == 1) {
+            return reservas[0];
+        }
+        // POO - Colecciones: arreglo de String con una opción por cada reserva (misma posición).
+        String[] opciones = new String[reservas.length];
+        for (int i = 0; i < reservas.length; i++) {
+            opciones[i] = describir(reservas[i]);
+        }
+        Object elegida = JOptionPane.showInputDialog(this,
+                "El cliente tiene varias reservas con saldo pendiente.\n¿A cuál se carga la venta?",
+                "Factura unificada", JOptionPane.QUESTION_MESSAGE, null, opciones, opciones[0]);
+        for (int i = 0; i < opciones.length; i++) {
+            if (opciones[i].equals(elegida)) {
+                return reservas[i];
+            }
+        }
+        return null;
+    }
+
+    private static String describir(Reserva r) {
+        return r.getCodigo() + " · " + FormatoFecha.vista(r.getFecha()) + " " + r.getHoraInicio()
+                + " · saldo " + FormatoMoneda.formatear(r.getSaldo());
+    }
+
     private static String detalle(Venta v) {
         StringBuilder sb = new StringBuilder();
         sb.append("Fecha:    ").append(FormatoFecha.vista(v.getFechaHora())).append('\n');
         sb.append("Cliente:  ").append(v.getCliente() == null ? "(mostrador)" : v.getCliente().getDescripcion()).append('\n');
         sb.append("Atendió:  ").append(v.getUsuario().getNombre()).append('\n');
-        sb.append("Pago:     ").append(v.getMetodoPago()).append("\n\n");
+        sb.append("Factura:  ").append(v.getTipoFactura()).append('\n');
+        sb.append("Pago:     ").append(v.getDescripcionPago()).append("\n\n");
         for (DetalleVenta d : v.getDetalles()) {
             sb.append(String.format("%-26s %3d x %10s %12s%n", d.getProducto().getNombre(), d.getCantidad(),
                     FormatoMoneda.formatear(d.getPrecioUnitario()), FormatoMoneda.formatear(d.getSubtotal())));
@@ -245,6 +327,12 @@ public class PnlVentas extends javax.swing.JPanel implements Refrescable {
         pnlClienteBotones = new javax.swing.JPanel();
         btnCliente = new javax.swing.JButton();
         btnSinCliente = new javax.swing.JButton();
+        lblFactura = new javax.swing.JLabel();
+        pnlFactura = new javax.swing.JPanel();
+        chkIndividual = new javax.swing.JCheckBox();
+        chkUnificada = new javax.swing.JCheckBox();
+        lblReserva = new javax.swing.JLabel();
+        lblReservaValor = new javax.swing.JLabel();
         lblMetodo = new javax.swing.JLabel();
         cboMetodo = new javax.swing.JComboBox<>();
         pnlAccionesVenta = new javax.swing.JPanel();
@@ -418,17 +506,69 @@ public class PnlVentas extends javax.swing.JPanel implements Refrescable {
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 8);
         pnlCarrito.add(pnlClienteBotones, gridBagConstraints);
 
-        lblMetodo.setText("Método de pago:");
+        lblFactura.setText("Factura:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(4, 8, 4, 8);
+        pnlCarrito.add(lblFactura, gridBagConstraints);
+
+        pnlFactura.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 6, 0));
+        chkIndividual.setSelected(true);
+        chkIndividual.setText("Factura individual");
+        chkIndividual.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                chkIndividualActionPerformed(evt);
+            }
+        });
+        pnlFactura.add(chkIndividual);
+
+        chkUnificada.setText("Factura unificada");
+        chkUnificada.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                chkUnificadaActionPerformed(evt);
+            }
+        });
+        pnlFactura.add(chkUnificada);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 8);
+        pnlCarrito.add(pnlFactura, gridBagConstraints);
+
+        lblReserva.setText("Reserva:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(4, 8, 4, 8);
+        pnlCarrito.add(lblReserva, gridBagConstraints);
+
+        lblReservaValor.setText("(no aplica)");
+        lblReservaValor.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 8);
+        pnlCarrito.add(lblReservaValor, gridBagConstraints);
+
+        lblMetodo.setText("Método de pago:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(4, 8, 4, 8);
         pnlCarrito.add(lblMetodo, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 8);
@@ -453,7 +593,7 @@ public class PnlVentas extends javax.swing.JPanel implements Refrescable {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
@@ -487,6 +627,14 @@ public class PnlVentas extends javax.swing.JPanel implements Refrescable {
         quitarCliente();
     }//GEN-LAST:event_btnSinClienteActionPerformed
 
+    private void chkIndividualActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkIndividualActionPerformed
+        actualizarFactura();
+    }//GEN-LAST:event_chkIndividualActionPerformed
+
+    private void chkUnificadaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkUnificadaActionPerformed
+        actualizarFactura();
+    }//GEN-LAST:event_chkUnificadaActionPerformed
+
     private void btnVaciarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVaciarActionPerformed
         modeloCarrito.vaciar();
         actualizarTotal();
@@ -506,11 +654,16 @@ public class PnlVentas extends javax.swing.JPanel implements Refrescable {
     private javax.swing.JButton btnVaciar;
     private javax.swing.JButton btnVerVenta;
     private javax.swing.JComboBox<canchapro.pagos.MetodoPago> cboMetodo;
+    private javax.swing.JCheckBox chkIndividual;
+    private javax.swing.JCheckBox chkUnificada;
     private javax.swing.JLabel lblBuscar;
     private javax.swing.JLabel lblCantidad;
     private javax.swing.JLabel lblCliente;
     private javax.swing.JLabel lblClienteValor;
+    private javax.swing.JLabel lblFactura;
     private javax.swing.JLabel lblMetodo;
+    private javax.swing.JLabel lblReserva;
+    private javax.swing.JLabel lblReservaValor;
     private javax.swing.JLabel lblTotal;
     private javax.swing.JLabel lblTotalHoy;
     private javax.swing.JPanel pnlAccionesHistorial;
@@ -520,6 +673,7 @@ public class PnlVentas extends javax.swing.JPanel implements Refrescable {
     private javax.swing.JPanel pnlCarrito;
     private javax.swing.JPanel pnlCatalogo;
     private javax.swing.JPanel pnlClienteBotones;
+    private javax.swing.JPanel pnlFactura;
     private javax.swing.JPanel pnlHistorial;
     private javax.swing.JPanel pnlIzquierda;
     private javax.swing.JScrollPane scrCarrito;

@@ -11,40 +11,49 @@ import canchapro.util.FormatoFecha;
 import canchapro.util.excepciones.EntidadNoEncontradaException;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-/**
- * Ventas guardadas en ventas.csv:
- * codigo;fechaHora;codigoCliente;metodoPago;codigoUsuario;estado
- * codigoCliente queda vacío en ventas de mostrador. Las líneas de cada
- * venta se leen de detalle_ventas.csv y se asocian al cargar.
- */
 // POO - Herencia / Reutilización: hereda de RepositorioCsv; aquí solo se define el formato de ventas.csv.
 // POO - Polimorfismo: los métodos con @Override implementan los métodos abstractos de RepositorioCsv.
 public class VentaRepositorio extends RepositorioCsv<Venta> {
 
     public static final String ARCHIVO = "ventas.csv";
 
+    private static final String ENCABEZADO = "codigo;fechaHora;codigoCliente;metodoPago;codigoUsuario;estado;codigoReserva";
+    private static final String ENCABEZADO_ANTERIOR = "codigo;fechaHora;codigoCliente;metodoPago;codigoUsuario;estado";
+    private static final int CAMPOS = 7;
+
+    // POO - Relaciones: usa los repositorios de clientes y usuarios para reconstruir las referencias.
     private final ClienteRepositorio clientes;
     private final UsuarioRepositorio usuarios;
+    private final Predicate<String> existeReserva;
     private Supplier<DetalleVenta[]> fuenteDetalles = () -> new DetalleVenta[0];
+    private Runnable alCargar = () -> { };
 
-    public VentaRepositorio(Path carpetaDatos, ClienteRepositorio clientes, UsuarioRepositorio usuarios) {
+    public VentaRepositorio(Path carpetaDatos, ClienteRepositorio clientes, UsuarioRepositorio usuarios,
+            Predicate<String> existeReserva) {
         super(carpetaDatos.resolve(ARCHIVO));
         this.clientes = clientes;
         this.usuarios = usuarios;
+        this.existeReserva = existeReserva;
     }
 
     public void setFuenteDetalles(Supplier<DetalleVenta[]> fuenteDetalles) {
         this.fuenteDetalles = fuenteDetalles;
     }
 
+    public void setAlCargar(Runnable alCargar) {
+        this.alCargar = alCargar;
+    }
+
+    // POO - Polimorfismo: sobrescribe el método de RepositorioCsv que se ejecuta al terminar cada carga.
     @Override
     protected void despuesDeCargar() {
         vincularDetalles();
+        alCargar.run();
     }
 
-    /** Asocia a cada venta sus líneas (se llama tras leer ventas o detalles). */
     public void vincularDetalles() {
         DetalleVenta[] todos = fuenteDetalles.get();
         for (Venta venta : listar()) {
@@ -61,16 +70,34 @@ public class VentaRepositorio extends RepositorioCsv<Venta> {
         }
     }
 
-    // --- Formato del archivo ---
-
     @Override
     protected String encabezado() {
-        return "codigo;fechaHora;codigoCliente;metodoPago;codigoUsuario;estado";
+        return ENCABEZADO;
     }
 
     @Override
     protected int cantidadCampos() {
-        return 6;
+        return CAMPOS;
+    }
+
+    // POO - Polimorfismo: sobrescribe el método de RepositorioCsv para aceptar también el archivo
+    // de ventas anterior, que no tenía la columna codigoReserva.
+    @Override
+    protected boolean encabezadoAceptado(String encontrado) {
+        return encontrado.equals(ENCABEZADO) || encontrado.equals(ENCABEZADO_ANTERIOR);
+    }
+
+    // POO - Polimorfismo: sobrescribe el método de RepositorioCsv. Una línea del archivo anterior
+    // (sin codigoReserva) se completa con un campo vacío: es una venta con factura individual.
+    // POO - Colecciones: arreglo de String con los campos de la línea.
+    @Override
+    protected String[] adaptarCampos(String[] campos) {
+        if (campos.length != CAMPOS - 1) {
+            return campos;
+        }
+        String[] completos = Arrays.copyOf(campos, CAMPOS);
+        completos[CAMPOS - 1] = "";
+        return completos;
     }
 
     @Override
@@ -82,9 +109,15 @@ public class VentaRepositorio extends RepositorioCsv<Venta> {
         }
         Usuario usuario = usuarios.buscar(c[4].trim())
                 .orElseThrow(() -> new EntidadNoEncontradaException("usuario inexistente " + c[4]));
-        return new Venta(c[0].trim(), CamposCsv.fechaHora(c[1], "fechaHora"), cliente,
-                CamposCsv.enumeracion(MetodoPago.class, c[3], "metodoPago"), usuario,
-                CamposCsv.enumeracion(Venta.Estado.class, c[5], "estado"));
+        String codigoReserva = c[6].isBlank() ? null : c[6].trim();
+        MetodoPago metodo = null;
+        if (codigoReserva == null) {
+            metodo = CamposCsv.enumeracion(MetodoPago.class, c[3], "metodoPago");
+        } else if (!existeReserva.test(codigoReserva)) {
+            throw new EntidadNoEncontradaException("la venta corresponde a la reserva inexistente " + c[6]);
+        }
+        return new Venta(c[0].trim(), CamposCsv.fechaHora(c[1], "fechaHora"), cliente, metodo, usuario,
+                CamposCsv.enumeracion(Venta.Estado.class, c[5], "estado"), codigoReserva);
     }
 
     @Override
@@ -92,7 +125,9 @@ public class VentaRepositorio extends RepositorioCsv<Venta> {
         return String.join(";",
                 v.getCodigo(), v.getFechaHora().format(FormatoFecha.ARCHIVO_FECHA_HORA),
                 v.getCliente() == null ? "" : v.getCliente().getCodigo(),
-                v.getMetodoPago().name(), v.getUsuario().getCodigo(), v.getEstado().name());
+                v.getMetodoPago() == null ? "" : v.getMetodoPago().name(),
+                v.getUsuario().getCodigo(), v.getEstado().name(),
+                v.getCodigoReserva() == null ? "" : v.getCodigoReserva());
     }
 
     @Override

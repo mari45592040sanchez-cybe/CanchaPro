@@ -6,11 +6,6 @@ import canchapro.persistencia.RepositorioCsv;
 import canchapro.util.FormatoFecha;
 import java.nio.file.Path;
 
-/**
- * Tarifas guardadas en tarifas.csv:
- * codigo;tipoDia;horaDesde;horaHasta;precioHora;tipoCancha;activa
- * En tipoCancha se escribe TODOS cuando la tarifa aplica a cualquier tipo.
- */
 // POO - Herencia / Reutilización: hereda de RepositorioCsv; aquí solo se define el formato de tarifas.csv.
 // POO - Polimorfismo: los métodos con @Override implementan los métodos abstractos de RepositorioCsv.
 public class TarifaRepositorio extends RepositorioCsv<Tarifa> {
@@ -21,8 +16,6 @@ public class TarifaRepositorio extends RepositorioCsv<Tarifa> {
     public TarifaRepositorio(Path carpetaDatos) {
         super(carpetaDatos.resolve(ARCHIVO));
     }
-
-    // --- Formato del archivo ---
 
     @Override
     protected String encabezado() {

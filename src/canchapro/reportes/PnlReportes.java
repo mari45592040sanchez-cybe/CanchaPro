@@ -16,10 +16,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.border.TitledBorder;
 
-/**
- * Pantalla de reportes. Solo conoce la interfaz {@link Reporte}: cualquier
- * reporte registrado en {@link ReporteServicio} aparece en la lista.
- */
 // POO - Herencia: extiende JPanel. POO - Polimorfismo: implementa Refrescable y trabaja solo con la
 // interfaz Reporte; no sabe qué reporte concreto está generando.
 public class PnlReportes extends javax.swing.JPanel implements Refrescable {
@@ -53,7 +49,6 @@ public class PnlReportes extends javax.swing.JPanel implements Refrescable {
         generar();
     }
 
-    /** Al elegir otro reporte se habilitan solo sus filtros y se genera. */
     private void reporteSeleccionado() {
         Reporte reporte = (Reporte) cboReporte.getSelectedItem();
         if (cargando || reporte == null) {

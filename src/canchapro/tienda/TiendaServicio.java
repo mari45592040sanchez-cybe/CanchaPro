@@ -2,6 +2,8 @@ package canchapro.tienda;
 
 import canchapro.clientes.Cliente;
 import canchapro.pagos.MetodoPago;
+import canchapro.reservas.Reserva;
+import canchapro.reservas.ReservaServicio;
 import canchapro.usuarios.Usuario;
 import canchapro.util.GeneradorCodigo;
 import canchapro.util.Texto;
@@ -16,9 +18,6 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/**
- * Reglas de la tienda/cafetería: catálogo de productos, inventario y ventas.
- */
 // POO - Responsabilidad: reglas de la tienda (stock suficiente, todo o nada al vender, anular devuelve unidades).
 public class TiendaServicio {
 
@@ -29,17 +28,19 @@ public class TiendaServicio {
     private final ProductoRepositorio productos;
     private final VentaRepositorio ventas;
     private final DetalleVentaRepositorio detalles;
+    // POO - Relaciones (asociación): usa el servicio de reservas para cargar las facturas unificadas.
+    private final ReservaServicio reservas;
     private final Clock reloj;
 
     public TiendaServicio(ProductoRepositorio productos, VentaRepositorio ventas, DetalleVentaRepositorio detalles,
-            Clock reloj) {
+            ReservaServicio reservas, Clock reloj) {
         this.productos = productos;
         this.ventas = ventas;
         this.detalles = detalles;
+        this.reservas = reservas;
         this.reloj = reloj;
     }
 
-    /** Primer arranque: algunos productos de ejemplo. */
     public boolean asegurarDatosIniciales() {
         if (!productos.estaVacio()) {
             return false;
@@ -59,15 +60,12 @@ public class TiendaServicio {
         productos.agregar(new Producto(codigo, nombre, categoria, new BigDecimal(precio), existencia, minimo, true));
     }
 
-    // --- Productos ---
-
     public Producto[] listarProductos() {
         Producto[] lista = productos.listar();
         Arrays.sort(lista, Comparator.comparing(Producto::getCodigo));
         return lista;
     }
 
-    /** Productos activos cuyo código o nombre contiene el texto (sin tildes ni mayúsculas). */
     public Producto[] buscarProductosActivos(String texto) {
         boolean sinFiltro = texto == null || texto.isBlank();
         Producto[] todos = listarProductos();
@@ -97,7 +95,6 @@ public class TiendaServicio {
         return producto;
     }
 
-    /** Cambiar el precio no afecta ventas anteriores (cada línea guarda su precio). */
     public Producto actualizarProducto(String codigo, String nombre, CategoriaProducto categoria, BigDecimal precio,
             int stockMinimo) {
         Producto producto = obtenerProducto(codigo);
@@ -138,32 +135,59 @@ public class TiendaServicio {
         return Arrays.copyOf(bajos, cantidad);
     }
 
-    /** Verifica (sin vender) que haya existencia para la cantidad indicada. */
     public void verificarStock(Producto producto, int cantidad) {
         obtenerProducto(producto.getCodigo()).verificarStock(cantidad);
     }
 
-    // --- Ventas ---
-
-    /**
-     * Registra una venta y descuenta el inventario.
-     * Primero se valida el stock de TODOS los productos; si alguno no
-     * alcanza, no se descuenta nada (todo o nada).
-     *
-     * @param cliente cliente, o null para venta de mostrador
-     */
     public Venta registrarVenta(Cliente cliente, ItemVenta[] items, MetodoPago metodo, Usuario usuario) {
-        if (items == null || items.length == 0) {
-            throw new DatosInvalidosException("Agregue al menos un producto a la venta.");
-        }
+        validarItems(items);
         if (metodo == null) {
             throw new DatosInvalidosException("Seleccione el método de pago.");
         }
+        return crearVenta(cliente, items, metodo, usuario, null);
+    }
+
+    // POO - Método: registra una venta con factura unificada; no se cobra en la tienda,
+    // se carga a la cuenta de la reserva del cliente.
+    public Venta registrarVentaUnificada(Cliente cliente, String codigoReserva, ItemVenta[] items, Usuario usuario) {
+        validarItems(items);
+        if (cliente == null) {
+            throw new DatosInvalidosException("Para la factura unificada seleccione el cliente.");
+        }
+        if (codigoReserva == null || codigoReserva.isBlank()) {
+            throw new DatosInvalidosException("Seleccione la reserva a la que se cargará la venta.");
+        }
+        Reserva reserva = reservas.obtener(codigoReserva);
+        if (!reserva.getCliente().getCodigo().equals(cliente.getCodigo())) {
+            throw new ReglaNegocioException("La reserva " + reserva.getCodigo() + " no pertenece al cliente "
+                    + cliente.getNombre() + ".");
+        }
+        return crearVenta(cliente, items, null, usuario, reserva);
+    }
+
+    // POO - Colecciones: arreglo con las reservas del cliente que aún tienen saldo pendiente.
+    public Reserva[] reservasParaFacturaUnificada(Cliente cliente) {
+        if (cliente == null) {
+            return new Reserva[0];
+        }
+        return reservas.reservasConSaldo(cliente.getCodigo());
+    }
+
+    private static void validarItems(ItemVenta[] items) {
+        if (items == null || items.length == 0) {
+            throw new DatosInvalidosException("Agregue al menos un producto a la venta.");
+        }
+    }
+
+    // POO - Método: pasos comunes de los dos tipos de factura. Si reserva es null la factura es individual.
+    private Venta crearVenta(Cliente cliente, ItemVenta[] items, MetodoPago metodo, Usuario usuario, Reserva reserva) {
         if (cliente != null && !cliente.isActivo()) {
             throw new ReglaNegocioException("El cliente " + cliente.getNombre() + " está inactivo.");
         }
+        if (reserva != null) {
+            reserva.verificarAceptaConsumos();
+        }
 
-        // Un mismo producto agregado dos veces se suma en una sola línea.
         // POO - Colecciones: arreglos paralelos de códigos y cantidades (posición i = producto i).
         String[] codigos = new String[items.length];
         int[] cantidades = new int[items.length];
@@ -187,7 +211,6 @@ public class TiendaServicio {
             cantidades[indice] += item.cantidad();
         }
 
-        // 1. Validar todo antes de modificar nada.
         for (int i = 0; i < distintos; i++) {
             Producto producto = obtenerProducto(codigos[i]);
             if (!producto.isActivo()) {
@@ -196,9 +219,9 @@ public class TiendaServicio {
             producto.verificarStock(cantidades[i]);
         }
 
-        // 2. Crear la venta y descontar el inventario.
         String codigo = GeneradorCodigo.siguiente(PREFIJO_VENTA, 5, ventas.codigos());
-        Venta venta = new Venta(codigo, LocalDateTime.now(reloj), cliente, metodo, usuario, Venta.Estado.REGISTRADA);
+        Venta venta = new Venta(codigo, LocalDateTime.now(reloj), cliente, metodo, usuario, Venta.Estado.REGISTRADA,
+                reserva == null ? null : reserva.getCodigo());
         DetalleVenta[] lineas = new DetalleVenta[distintos];
         for (int i = 0; i < distintos; i++) {
             Producto producto = obtenerProducto(codigos[i]);
@@ -206,6 +229,9 @@ public class TiendaServicio {
             lineas[i] = new DetalleVenta(codigo, i + 1, producto, cantidades[i], producto.getPrecio());
         }
         venta.reemplazarDetalles(lineas);
+        if (reserva != null) {
+            reserva.registrarConsumo(venta);
+        }
 
         ventas.agregar(venta);
         for (DetalleVenta linea : lineas) {
@@ -215,9 +241,11 @@ public class TiendaServicio {
         return venta;
     }
 
-    /** Anula la venta y devuelve las unidades al inventario. */
     public void anularVenta(String codigo) {
         Venta venta = obtenerVenta(codigo);
+        if (venta.esUnificada() && venta.getEstado() == Venta.Estado.REGISTRADA) {
+            reservas.obtener(venta.getCodigoReserva()).verificarAnulacionConsumo(venta);
+        }
         venta.anular();
         for (DetalleVenta d : venta.getDetalles()) {
             d.getProducto().reponer(d.getCantidad());
@@ -230,7 +258,6 @@ public class TiendaServicio {
                 .orElseThrow(() -> new EntidadNoEncontradaException("No existe la venta " + codigo));
     }
 
-    /** Ventas entre dos fechas (incluidas), de la más reciente a la más antigua. */
     public Venta[] ventasPorPeriodo(LocalDate desde, LocalDate hasta) {
         Venta[] todas = ventas.listar();
         Venta[] encontradas = new Venta[todas.length];
@@ -247,7 +274,6 @@ public class TiendaServicio {
         return resultado;
     }
 
-    /** Total vendido hoy (sin ventas anuladas). */
     public BigDecimal totalVendidoHoy() {
         LocalDate hoy = LocalDate.now(reloj);
         BigDecimal total = BigDecimal.ZERO;
@@ -272,10 +298,6 @@ public class TiendaServicio {
         }
     }
 
-    /**
-     * Guarda ventas, líneas y productos. Si algo falla, se vuelve a leer
-     * todo para que la memoria coincida con los archivos.
-     */
     private void guardarTodo() {
         try {
             ventas.guardar();

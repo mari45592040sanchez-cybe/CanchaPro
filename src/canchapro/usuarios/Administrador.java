@@ -1,8 +1,5 @@
 package canchapro.usuarios;
 
-/**
- * El administrador tiene acceso a todos los módulos del sistema.
- */
 // POO - Herencia: Administrador ES UN Usuario (y por lo tanto una Persona).
 public class Administrador extends Usuario {
 

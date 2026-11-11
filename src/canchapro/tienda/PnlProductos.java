@@ -10,16 +10,12 @@ import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 
-/**
- * Catálogo de productos de la tienda e inventario.
- */
 // POO - Herencia: la pantalla extiende JPanel de Swing.
 // POO - Relaciones: usa TiendaServicio para las reglas de negocio.
 public class PnlProductos extends javax.swing.JPanel implements Refrescable {
 
     private final TiendaServicio servicio;
     private final ProductoTableModel modeloTabla = new ProductoTableModel();
-    /** Código del producto en edición; null cuando se registra uno nuevo. */
     private String codigoSeleccionado;
 
     public PnlProductos(TiendaServicio servicio) {

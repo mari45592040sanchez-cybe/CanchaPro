@@ -11,9 +11,6 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
 
-/**
- * Inicio de sesión y cambio de contraseña.
- */
 // POO - Responsabilidad: solo se encarga de autenticar y de bloquear tras 3 intentos fallidos.
 public class LoginServicio {
 
@@ -23,7 +20,6 @@ public class LoginServicio {
 
     // POO - Relaciones (composición): usa el repositorio de usuarios para buscar al usuario.
     private final UsuarioRepositorio repositorio;
-    /** Intentos fallidos por nombre de usuario (solo en memoria). */
     // POO - Colecciones: arreglo de objetos IntentosFallidos + contador; cada uno guarda su username.
     private IntentosFallidos[] intentos = new IntentosFallidos[10];
     private int cantidadIntentos;
@@ -32,13 +28,6 @@ public class LoginServicio {
         this.repositorio = repositorio;
     }
 
-    /**
-     * Valida las credenciales y devuelve la sesión iniciada.
-     * El mensaje de error es el mismo si el usuario no existe o la
-     * contraseña es incorrecta, para no revelar qué usuarios existen.
-     *
-     * @throws AutenticacionException si las credenciales no son válidas
-     */
     public Sesion autenticar(String username, String password) {
         if (username == null || username.isBlank() || password == null || password.isEmpty()) {
             throw new AutenticacionException("Ingrese usuario y contraseña.");
@@ -76,7 +65,6 @@ public class LoginServicio {
         return nuevo;
     }
 
-    /** Al iniciar sesión correctamente se borran sus intentos (los siguientes se corren una posición). */
     private void quitarIntentos(String clave) {
         for (int i = 0; i < cantidadIntentos; i++) {
             if (intentos[i].clave.equals(clave)) {
@@ -90,9 +78,6 @@ public class LoginServicio {
         }
     }
 
-    /**
-     * Cambia la contraseña del usuario después de verificar la actual.
-     */
     public void cambiarPassword(Usuario usuario, String actual, String nueva, String confirmacion) {
         if (!usuario.verificarPassword(actual)) {
             throw new ReglaNegocioException("La contraseña actual no es correcta.");
@@ -109,7 +94,6 @@ public class LoginServicio {
         repositorio.guardar();
     }
 
-    /** Control de intentos fallidos de un nombre de usuario. */
     // POO - Encapsulamiento: clase privada; solo LoginServicio controla los intentos.
     private static class IntentosFallidos {
 

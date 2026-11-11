@@ -2,9 +2,6 @@ package canchapro.usuarios;
 
 import canchapro.util.excepciones.ReglaNegocioException;
 
-/**
- * El empleado solo accede a los módulos que el administrador le asignó.
- */
 // POO - Herencia: Empleado ES UN Usuario (y por lo tanto una Persona).
 public class Empleado extends Usuario {
 
@@ -29,11 +26,6 @@ public class Empleado extends Usuario {
         return !modulo.isSoloAdministrador() && tieneModulo(modulo);
     }
 
-    /**
-     * Reemplaza los módulos asignados.
-     *
-     * @throws ReglaNegocioException si se intenta asignar un módulo exclusivo del administrador
-     */
     public final void asignarModulos(Modulo[] modulos) {
         for (Modulo modulo : modulos) {
             if (modulo.isSoloAdministrador()) {
@@ -57,7 +49,6 @@ public class Empleado extends Usuario {
         }
     }
 
-    /** true si el módulo está asignado (búsqueda secuencial). */
     public boolean tieneModulo(Modulo modulo) {
         return contiene(modulosAsignados, modulo);
     }

@@ -7,9 +7,6 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/**
- * Clientes ordenados por cantidad de reservas (y por monto en caso de empate).
- */
 // POO - Herencia: hereda de ReporteBase las funciones comunes de los reportes.
 // POO - Polimorfismo: sobrescribe getNombre(), filtrosAplicables() y generar().
 public class ReporteClientesFrecuentes extends ReporteBase {
@@ -75,7 +72,6 @@ public class ReporteClientesFrecuentes extends ReporteBase {
         return r;
     }
 
-    /** Totales acumulados de un cliente. */
     // POO - Encapsulamiento: clase privada que solo usa este reporte. POO - Relaciones: TIENE un Cliente.
     private static final class Frecuencia {
 

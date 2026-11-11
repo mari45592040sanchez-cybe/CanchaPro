@@ -8,17 +8,14 @@ package canchapro.reportes;
 // los tratan a todos como "Reporte", sin conocer su clase concreta.
 public interface Reporte {
 
-    /** Filtros que un reporte puede usar. */
     enum Filtro {
         FECHAS, CANCHA, ESTADO, CLIENTE
     }
 
     String getNombre();
 
-    /** Explicación breve de qué muestra el reporte. */
     String getDescripcion();
 
-    /** Filtros que tienen efecto en este reporte (los demás se deshabilitan en pantalla). */
     // POO - Colecciones: arreglo con los filtros que usa el reporte.
     Filtro[] filtrosAplicables();
 
@@ -32,7 +29,6 @@ public interface Reporte {
         return true;
     }
 
-    /** true si el filtro está en {@link #filtrosAplicables()} (búsqueda secuencial). */
     // POO - Reutilización: método por defecto que heredan todos los reportes.
     default boolean usaFiltro(Filtro filtro) {
         for (Filtro f : filtrosAplicables()) {

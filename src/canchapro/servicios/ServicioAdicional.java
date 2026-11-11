@@ -7,10 +7,6 @@ import canchapro.util.excepciones.DatosInvalidosException;
 import java.math.BigDecimal;
 import java.time.Duration;
 
-/**
- * Servicio que puede agregarse a una reserva: balón, chalecos, árbitro,
- * iluminación, agua, etc. No se elimina: se desactiva.
- */
 // POO - Polimorfismo (interfaz): implementa Identificable para poder guardarse en un RepositorioCsv.
 // POO - Encapsulamiento: atributos privados; actualizarDatos() valida todo antes de asignar.
 // POO - Relaciones: TIENE un TipoCobro que decide cómo se calcula su importe.
@@ -33,7 +29,6 @@ public class ServicioAdicional implements Identificable {
         this.activo = activo;
     }
 
-    /** Valida todos los datos y solo entonces los asigna. */
     public final void actualizarDatos(String nombre, String descripcion, BigDecimal precio, TipoCobro tipoCobro) {
         String nombreValido = Validador.texto(nombre, 3, 40, "El nombre del servicio");
         String descripcionValida = Validador.opcional(descripcion);
@@ -50,12 +45,6 @@ public class ServicioAdicional implements Identificable {
         this.tipoCobro = tipoCobro;
     }
 
-    /**
-     * Importe de este servicio dentro de una reserva.
-     *
-     * @param cantidad unidades (1 a {@value #CANTIDAD_MAXIMA})
-     * @param duracion duración de la reserva
-     */
     public BigDecimal calcularImporte(int cantidad, Duration duracion) {
         if (cantidad < 1 || cantidad > CANTIDAD_MAXIMA) {
             throw new DatosInvalidosException("La cantidad de " + nombre + " debe estar entre 1 y " + CANTIDAD_MAXIMA + ".");
@@ -92,7 +81,6 @@ public class ServicioAdicional implements Identificable {
         this.activo = activo;
     }
 
-    /** "Árbitro (Q 75.00 por hora)" */
     @Override
     public String toString() {
         return nombre + " (" + FormatoMoneda.formatear(precio) + " " + tipoCobro.toString().toLowerCase() + ")";

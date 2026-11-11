@@ -2,10 +2,6 @@ package canchapro.reportes;
 
 import javax.swing.table.AbstractTableModel;
 
-/**
- * Muestra cualquier {@link ResultadoReporte} en una tabla: las columnas
- * dependen del reporte generado.
- */
 // POO - Herencia: extiende AbstractTableModel de Swing.
 // POO - Reutilización: un solo modelo de tabla sirve para los 8 reportes.
 public class ReporteTableModel extends AbstractTableModel {

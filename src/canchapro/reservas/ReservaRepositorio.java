@@ -9,6 +9,7 @@ import canchapro.persistencia.CamposCsv;
 import canchapro.persistencia.RepositorioCsv;
 import canchapro.servicios.ServicioAdicional;
 import canchapro.servicios.ServicioAdicionalRepositorio;
+import canchapro.tienda.Venta;
 import canchapro.usuarios.Usuario;
 import canchapro.usuarios.UsuarioRepositorio;
 import canchapro.util.FormatoFecha;
@@ -19,19 +20,6 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
-/**
- * Reservas guardadas en reservas.csv:
- * codigo;codigoCliente;codigoCancha;fecha;horaInicio;duracionMin;subtotalCancha;servicios;estado;
- * codigoUsuarioCreador;fechaCreacion;fechaCancelacion;motivoCancelacion;codigoUsuarioCancelacion
- *
- * El campo servicios lista los servicios de la reserva separados por '|',
- * cada uno como codigoServicio:cantidad:precioUnitario:subtotal
- * (ejemplo: SRV-001:2:25.00:50.00|SRV-004:1:50.00:100.00).
- * Los datos de cancelación quedan vacíos si la reserva no está cancelada.
- *
- * Al cargar se reconstruyen las referencias a cliente, cancha, servicios y
- * usuarios; los pagos se leen de pagos.csv y se asocian a cada reserva.
- */
 // POO - Herencia / Reutilización: hereda de RepositorioCsv; aquí solo se define el formato de reservas.csv.
 // POO - Polimorfismo: los métodos con @Override implementan los métodos abstractos de RepositorioCsv.
 public class ReservaRepositorio extends RepositorioCsv<Reserva> {
@@ -45,6 +33,7 @@ public class ReservaRepositorio extends RepositorioCsv<Reserva> {
     private final ServicioAdicionalRepositorio servicios;
     private final UsuarioRepositorio usuarios;
     private Supplier<Pago[]> fuentePagos = () -> new Pago[0];
+    private Supplier<Venta[]> fuenteVentas = () -> new Venta[0];
 
     public ReservaRepositorio(Path carpetaDatos, ClienteRepositorio clientes, CanchaRepositorio canchas,
             ServicioAdicionalRepositorio servicios, UsuarioRepositorio usuarios) {
@@ -55,17 +44,37 @@ public class ReservaRepositorio extends RepositorioCsv<Reserva> {
         this.usuarios = usuarios;
     }
 
-    /** Indica de dónde obtener los pagos para asociarlos a las reservas. */
     public void setFuentePagos(Supplier<Pago[]> fuentePagos) {
         this.fuentePagos = fuentePagos;
+    }
+
+    public void setFuenteVentas(Supplier<Venta[]> fuenteVentas) {
+        this.fuenteVentas = fuenteVentas;
     }
 
     @Override
     protected void despuesDeCargar() {
         vincularPagos();
+        vincularVentas();
     }
 
-    /** Asocia a cada reserva sus pagos (se llama tras leer reservas o pagos). */
+    // POO - Relaciones: asocia a cada reserva las ventas de la tienda con factura unificada.
+    public void vincularVentas() {
+        Venta[] todas = fuenteVentas.get();
+        for (Reserva reserva : listar()) {
+            // POO - Colecciones: se copian a un arreglo temporal las ventas cargadas a esta reserva.
+            Venta[] deLaReserva = new Venta[todas.length];
+            int cantidad = 0;
+            for (Venta venta : todas) {
+                if (reserva.getCodigo().equals(venta.getCodigoReserva())) {
+                    deLaReserva[cantidad] = venta;
+                    cantidad++;
+                }
+            }
+            reserva.reemplazarConsumos(Arrays.copyOf(deLaReserva, cantidad));
+        }
+    }
+
     public void vincularPagos() {
         Pago[] todos = fuentePagos.get();
         for (Reserva reserva : listar()) {
@@ -81,8 +90,6 @@ public class ReservaRepositorio extends RepositorioCsv<Reserva> {
             reserva.reemplazarPagos(Arrays.copyOf(deLaReserva, cantidad));
         }
     }
-
-    // --- Formato del archivo ---
 
     @Override
     protected String encabezado() {

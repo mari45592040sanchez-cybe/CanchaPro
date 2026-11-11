@@ -2,10 +2,6 @@ package canchapro.reportes;
 
 import java.util.Arrays;
 
-/**
- * Resultado de un reporte: columnas, filas y totales (todos como texto listo
- * para mostrar o exportar).
- */
 // POO - Encapsulamiento: los arreglos son privados; se llenan con agregarFila/agregarTotal
 // y se consultan con getters que devuelven copias.
 public class ResultadoReporte {
@@ -41,7 +37,6 @@ public class ResultadoReporte {
         cantidadFilas++;
     }
 
-    /** Agrega un total; si el concepto ya existe, reemplaza su valor. */
     public void agregarTotal(String concepto, Object valor) {
         String texto = String.valueOf(valor);
         int indice = indiceTotal(concepto);
@@ -62,7 +57,6 @@ public class ResultadoReporte {
         return titulo;
     }
 
-    /** Período y filtros aplicados, en texto. */
     public String getSubtitulo() {
         return subtitulo;
     }
@@ -79,7 +73,6 @@ public class ResultadoReporte {
         return columnas[indice];
     }
 
-    /** Copia de las filas (cada fila también se copia). */
     public String[][] getFilas() {
         String[][] copia = new String[cantidadFilas][];
         for (int i = 0; i < cantidadFilas; i++) {
@@ -108,7 +101,6 @@ public class ResultadoReporte {
         return valoresTotales[indice];
     }
 
-    /** Valor de un total por su concepto, o null si no existe. */
     public String getTotal(String concepto) {
         int indice = indiceTotal(concepto);
         return indice < 0 ? null : valoresTotales[indice];

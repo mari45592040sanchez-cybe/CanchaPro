@@ -12,13 +12,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-/**
- * Pantalla de clientes: búsqueda en vivo, registro, edición y
- * activación/desactivación.
- *
- * También se reutiliza dentro de {@link DlgBuscarCliente} en "modo
- * selección" para elegir el cliente de una reserva o venta.
- */
 // POO - Herencia: la pantalla extiende JPanel (hereda todo el comportamiento de un panel de Swing).
 // POO - Reutilización: este mismo panel se usa dentro de DlgBuscarCliente en "modo selección".
 public class PnlClientes extends javax.swing.JPanel {
@@ -27,10 +20,8 @@ public class PnlClientes extends javax.swing.JPanel {
     // ella solo muestra datos y responde a los botones.
     private final ClienteServicio servicio;
     private final ClienteTableModel modeloTabla = new ClienteTableModel();
-    /** Código del cliente en edición; null cuando se registra uno nuevo. */
     private String codigoSeleccionado;
     private Consumer<Cliente> alHacerDobleClic = cliente -> { };
-    /** Evita recargar el formulario cuando la selección cambia por código. */
     private boolean marcandoFila;
 
     public PnlClientes(ClienteServicio servicio) {
@@ -60,12 +51,6 @@ public class PnlClientes extends javax.swing.JPanel {
         limpiarFormulario();
     }
 
-    // --- API para reutilizar el panel en DlgBuscarCliente ---
-
-    /**
-     * Oculta las opciones de administración (inactivos y desactivar):
-     * en modo selección solo se buscan, registran o editan clientes activos.
-     */
     public void activarModoSeleccion() {
         chkMostrarInactivos.setSelected(false);
         chkMostrarInactivos.setVisible(false);
@@ -84,8 +69,6 @@ public class PnlClientes extends javax.swing.JPanel {
     public void enfocarBusqueda() {
         txtBuscar.requestFocusInWindow();
     }
-
-    // --- Lógica de la pantalla ---
 
     private void cargarTabla() {
         // POO - Colecciones: el servicio devuelve un arreglo de clientes.
@@ -130,10 +113,6 @@ public class PnlClientes extends javax.swing.JPanel {
         txtNombre.requestFocusInWindow();
     }
 
-    /**
-     * Mientras se escribe el teléfono, avisa si ya pertenece a otro cliente
-     * (ayuda a no registrar duplicados antes de presionar Guardar).
-     */
     private void verificarTelefono() {
         String telefono = txtTelefono.getText().trim();
         String aviso = " ";
@@ -167,7 +146,6 @@ public class PnlClientes extends javax.swing.JPanel {
             mostrarCliente(cliente);
             cargarTabla();
             if (modeloTabla.indiceDe(cliente.getCodigo()) < 0) {
-                // El filtro de búsqueda lo oculta: se limpia para mostrarlo.
                 txtBuscar.setText("");
             }
             marcarEnTabla(cliente.getCodigo());
@@ -204,10 +182,6 @@ public class PnlClientes extends javax.swing.JPanel {
         }
     }
 
-    /**
-     * Resalta la fila del cliente sin volver a llenar el formulario, para no
-     * perder lo que el usuario esté escribiendo.
-     */
     private void marcarEnTabla(String codigo) {
         int filaModelo = modeloTabla.indiceDe(codigo);
         if (filaModelo >= 0) {

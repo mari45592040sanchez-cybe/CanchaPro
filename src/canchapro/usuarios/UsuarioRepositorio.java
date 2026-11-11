@@ -6,11 +6,6 @@ import canchapro.util.Validador;
 import java.nio.file.Path;
 import java.util.Optional;
 
-/**
- * Usuarios del sistema guardados en usuarios.csv:
- * codigo;rol;nombre;telefono;correo;username;passwordHash;salt;activo;debeCambiarPassword;modulos
- * Los módulos se separan con '|' y quedan vacíos para administradores.
- */
 // POO - Herencia / Reutilización: hereda de RepositorioCsv toda la lógica de cargar, guardar y buscar.
 public class UsuarioRepositorio extends RepositorioCsv<Usuario> {
 
@@ -21,7 +16,6 @@ public class UsuarioRepositorio extends RepositorioCsv<Usuario> {
         super(carpetaDatos.resolve(ARCHIVO));
     }
 
-    /** Búsqueda sin distinguir mayúsculas y minúsculas. */
     public Optional<Usuario> buscarPorUsername(String username) {
         if (username == null) {
             return Optional.empty();
@@ -46,7 +40,6 @@ public class UsuarioRepositorio extends RepositorioCsv<Usuario> {
         return total;
     }
 
-    // --- Formato del archivo ---
     // POO - Polimorfismo: sobrescritura (@Override) de los métodos abstractos de RepositorioCsv.
 
     @Override

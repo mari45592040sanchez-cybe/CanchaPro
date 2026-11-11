@@ -6,9 +6,6 @@ import java.awt.Font;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
-/**
- * Muestra "Disponible" en verde o "No disponible" en rojo.
- */
 // POO - Herencia / Polimorfismo: extiende DefaultTableCellRenderer y sobrescribe cómo se dibuja la celda.
 public class DisponibleRenderer extends DefaultTableCellRenderer {
 

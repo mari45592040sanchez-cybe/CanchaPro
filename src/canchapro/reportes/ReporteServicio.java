@@ -10,15 +10,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
-/**
- * Registro de los reportes disponibles, generación con validación de
- * filtros y exportación a CSV.
- */
 // POO - Responsabilidad: registra los reportes, valida los filtros y exporta a CSV.
 public class ReporteServicio {
 
     private static final DateTimeFormatter SELLO = DateTimeFormatter.ofPattern("yyyyMMdd_HHmm");
-    /** Marca para que Excel abra el CSV exportado con tildes correctas. */
     private static final String BOM = "﻿";
 
     // POO - Colecciones / Polimorfismo: arreglo del tipo Reporte (interfaz); cada posición guarda
@@ -42,7 +37,6 @@ public class ReporteServicio {
         cantidad++;
     }
 
-    /** Reportes disponibles (los de módulos desactivados no aparecen). */
     public Reporte[] listar() {
         Reporte[] disponibles = new Reporte[cantidad];
         int n = 0;
@@ -56,11 +50,6 @@ public class ReporteServicio {
         return Arrays.copyOf(disponibles, n);
     }
 
-    /**
-     * Genera el reporte. Los filtros que el reporte no usa se ignoran.
-     *
-     * @throws DatosInvalidosException si el período no es válido
-     */
     public ResultadoReporte generar(Reporte reporte, FiltroReporte f) {
         boolean usaFechas = reporte.usaFiltro(Filtro.FECHAS);
         if (usaFechas) {
@@ -81,14 +70,7 @@ public class ReporteServicio {
         return reporte.generar(efectivo);
     }
 
-    /**
-     * Guarda el resultado en reportes/Nombre_del_reporte_yyyyMMdd_HHmm.csv
-     * (separado por ';', se abre directamente en Excel).
-     *
-     * @return ruta del archivo creado
-     */
     public Path exportarCsv(ResultadoReporte resultado) {
-        // Título, subtítulo, línea vacía, columnas, filas, línea vacía y totales.
         String[] lineas = new String[5 + resultado.getCantidadFilas() + resultado.getCantidadTotales()];
         int n = 0;
         lineas[n++] = BOM + limpiar(resultado.getTitulo());

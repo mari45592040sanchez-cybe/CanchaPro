@@ -4,6 +4,7 @@ import canchapro.canchas.Cancha;
 import canchapro.clientes.Cliente;
 import canchapro.disponibilidad.IntervaloHorario;
 import canchapro.pagos.Pago;
+import canchapro.tienda.Venta;
 import canchapro.usuarios.Usuario;
 import canchapro.util.FormatoFecha;
 import canchapro.util.FormatoMoneda;
@@ -19,19 +20,12 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
 
-/**
- * Reserva de una cancha. Es el objeto central del sistema: conoce a su
- * cliente, su cancha, sus servicios y sus pagos, y protege sus reglas
- * (estados, pagos y cancelación).
- *
- * Los totales nunca se escriben a mano: se calculan a partir del precio de
- * la cancha y de los servicios guardados al crear la reserva.
- */
 // POO - Polimorfismo (interfaz): implementa Identificable para poder guardarse en un RepositorioCsv.
 // POO - Responsabilidad: la reserva protege sus propias reglas (estados, pagos y cancelación).
 public class Reserva implements Identificable {
 
     private static final int CAPACIDAD_INICIAL_PAGOS = 4;
+    private static final int CAPACIDAD_INICIAL_CONSUMOS = 4;
 
     // POO - Encapsulamiento: todos los atributos son privados; el estado solo cambia con los métodos de negocio.
     private final String codigo;
@@ -48,6 +42,10 @@ public class Reserva implements Identificable {
     // Arreglo de objetos Pago + contador; si se llena, se crea uno del doble de tamaño.
     private Pago[] pagos = new Pago[CAPACIDAD_INICIAL_PAGOS];
     private int cantidadPagos;
+    // POO - Colecciones / Relaciones (asociación): arreglo de objetos Venta con las compras de la tienda
+    // cargadas a esta reserva (factura unificada) + contador; si se llena, se crea uno del doble de tamaño.
+    private Venta[] consumos = new Venta[CAPACIDAD_INICIAL_CONSUMOS];
+    private int cantidadConsumos;
     private final Usuario usuarioCreador;
     private final LocalDateTime fechaCreacion;
     private EstadoReserva estado;
@@ -73,8 +71,6 @@ public class Reserva implements Identificable {
         this.cancelacion = cancelacion;
     }
 
-    // --- Cálculos ---
-
     public LocalTime getHoraFin() {
         return horaInicio.plus(duracion);
     }
@@ -91,8 +87,19 @@ public class Reserva implements Identificable {
         return total;
     }
 
+    // POO - Colecciones: recorre el arreglo de consumos y suma solo las ventas que no están anuladas.
+    public BigDecimal getTotalTienda() {
+        BigDecimal total = BigDecimal.ZERO;
+        for (int i = 0; i < cantidadConsumos; i++) {
+            if (consumos[i].getEstado() == Venta.Estado.REGISTRADA) {
+                total = total.add(consumos[i].getTotal());
+            }
+        }
+        return total;
+    }
+
     public BigDecimal getTotal() {
-        return subtotalCancha.add(getTotalServicios());
+        return subtotalCancha.add(getTotalServicios()).add(getTotalTienda());
     }
 
     public BigDecimal getTotalPagado() {
@@ -107,14 +114,6 @@ public class Reserva implements Identificable {
         return getTotal().subtract(getTotalPagado());
     }
 
-    // --- Reglas de negocio ---
-
-    /**
-     * Cambia el estado solo si la transición tiene sentido.
-     *
-     * @throws ReglaNegocioException si la transición no está permitida
-     *                               (por ejemplo, de FINALIZADA a PENDIENTE)
-     */
     public void cambiarEstado(EstadoReserva destino) {
         if (!estado.puedeTransicionarA(destino)) {
             throw new ReglaNegocioException("La reserva " + codigo + " está " + estado.toString().toLowerCase()
@@ -123,12 +122,6 @@ public class Reserva implements Identificable {
         estado = destino;
     }
 
-    /**
-     * Registra un pago (anticipo o abono).
-     *
-     * @throws PagoInvalidoException si la reserva está cancelada, el pago no
-     *                               es de esta reserva o supera el saldo pendiente
-     */
     public void registrarPago(Pago pago) {
         if (!estado.permitePagos()) {
             throw new PagoInvalidoException("No se pueden registrar pagos en una reserva cancelada.");
@@ -156,12 +149,66 @@ public class Reserva implements Identificable {
         cantidadPagos++;
     }
 
-    /**
-     * Si la reserva está PENDIENTE y lo pagado alcanza el anticipo mínimo,
-     * pasa a CONFIRMADA.
-     *
-     * @return true si cambió de estado
-     */
+    // POO - Método: indica si la reserva todavía admite compras de la tienda (no cancelada y con saldo).
+    public boolean aceptaConsumos() {
+        return estado.permitePagos() && getSaldo().signum() > 0;
+    }
+
+    // POO - Responsabilidad: la reserva protege su regla; solo admite consumos mientras tenga saldo pendiente.
+    public void verificarAceptaConsumos() {
+        if (!estado.permitePagos()) {
+            throw new ReglaNegocioException("La reserva " + codigo
+                    + " está cancelada y no admite compras de la tienda.");
+        }
+        if (getSaldo().signum() <= 0) {
+            throw new ReglaNegocioException("La reserva " + codigo + " ya está pagada por completo. "
+                    + "Registre la compra con factura individual.");
+        }
+    }
+
+    // POO - Método: carga una venta de la tienda (factura unificada) a la cuenta de la reserva.
+    public void registrarConsumo(Venta venta) {
+        if (!codigo.equals(venta.getCodigoReserva())) {
+            throw new ReglaNegocioException("La venta " + venta.getCodigo() + " no corresponde a la reserva "
+                    + codigo + ".");
+        }
+        verificarAceptaConsumos();
+        agregarConsumo(venta);
+    }
+
+    // POO - Método: una venta cargada solo puede anularse si lo ya pagado no supera el total que quedaría.
+    public void verificarAnulacionConsumo(Venta venta) {
+        BigDecimal totalSinVenta = getTotal().subtract(venta.getTotal());
+        if (getTotalPagado().compareTo(totalSinVenta) > 0) {
+            throw new ReglaNegocioException("No se puede anular la venta " + venta.getCodigo()
+                    + ": la reserva " + codigo + " ya tiene pagado " + FormatoMoneda.formatear(getTotalPagado())
+                    + " y sin esa venta su total sería " + FormatoMoneda.formatear(totalSinVenta) + ".");
+        }
+    }
+
+    // POO - Colecciones: agrega al final del arreglo de consumos; si está lleno, lo agranda al doble.
+    private void agregarConsumo(Venta venta) {
+        if (cantidadConsumos == consumos.length) {
+            Venta[] mayor = new Venta[consumos.length * 2];
+            for (int i = 0; i < cantidadConsumos; i++) {
+                mayor[i] = consumos[i];
+            }
+            consumos = mayor;
+        }
+        consumos[cantidadConsumos] = venta;
+        cantidadConsumos++;
+    }
+
+    // POO - Colecciones: reemplaza el arreglo de consumos al reconstruir la reserva desde archivo.
+    void reemplazarConsumos(Venta[] cargados) {
+        consumos = new Venta[Math.max(CAPACIDAD_INICIAL_CONSUMOS, cargados.length)];
+        cantidadConsumos = 0;
+        for (Venta venta : cargados) {
+            agregarConsumo(venta);
+        }
+        Arrays.sort(consumos, 0, cantidadConsumos, Comparator.comparing(Venta::getFechaHora));
+    }
+
     public boolean confirmarSiCorresponde(BigDecimal anticipoMinimo) {
         if (estado == EstadoReserva.PENDIENTE && getTotalPagado().compareTo(anticipoMinimo) >= 0) {
             cambiarEstado(EstadoReserva.CONFIRMADA);
@@ -170,9 +217,6 @@ public class Reserva implements Identificable {
         return false;
     }
 
-    /**
-     * Cancela la reserva conservándola en el historial (nunca se elimina).
-     */
     public void cancelar(String motivo, Usuario usuario, LocalDateTime momento) {
         if (!estado.permiteCancelar()) {
             throw new ReglaNegocioException("Solo se pueden cancelar reservas pendientes o confirmadas. La reserva "
@@ -183,12 +227,6 @@ public class Reserva implements Identificable {
         cancelacion = datos;
     }
 
-    /**
-     * Avanza el estado según la hora actual: al llegar la hora de inicio
-     * pasa a EN_CURSO y al terminar pasa a FINALIZADA.
-     *
-     * @return true si el estado cambió
-     */
     public boolean actualizarEstadoSegun(LocalDateTime ahora) {
         EstadoReserva anterior = estado;
         IntervaloHorario intervalo = getIntervalo();
@@ -201,7 +239,6 @@ public class Reserva implements Identificable {
         return estado != anterior;
     }
 
-    /** Reemplaza los pagos al reconstruir la reserva desde archivo. */
     void reemplazarPagos(Pago[] cargados) {
         pagos = new Pago[Math.max(CAPACIDAD_INICIAL_PAGOS, cargados.length)];
         cantidadPagos = 0;
@@ -251,6 +288,19 @@ public class Reserva implements Identificable {
         return Arrays.copyOf(pagos, cantidadPagos);
     }
 
+    // POO - Encapsulamiento / Colecciones: devuelve un arreglo nuevo solo con las ventas no anuladas.
+    public Venta[] getConsumos() {
+        Venta[] vigentes = new Venta[cantidadConsumos];
+        int cantidad = 0;
+        for (int i = 0; i < cantidadConsumos; i++) {
+            if (consumos[i].getEstado() == Venta.Estado.REGISTRADA) {
+                vigentes[cantidad] = consumos[i];
+                cantidad++;
+            }
+        }
+        return Arrays.copyOf(vigentes, cantidad);
+    }
+
     public int getCantidadPagos() {
         return cantidadPagos;
     }
@@ -271,7 +321,6 @@ public class Reserva implements Identificable {
         return fechaCreacion;
     }
 
-    /** "RES-00012 · 12/10/2026 18:00-19:00 · C02 El Maracaná · Juan Pérez" */
     public String getDescripcion() {
         return codigo + " · " + FormatoFecha.vista(fecha) + " " + horaInicio + "-" + getHoraFin()
                 + " · " + cancha.getCodigo() + " " + cancha.getNombre() + " · " + cliente.getNombre();

@@ -7,12 +7,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
-/**
- * Manejo seguro de contraseñas: nunca se guardan en texto plano.
- * Se almacena un hash SHA-256 aplicado varias veces sobre (salt + contraseña).
- * El salt es aleatorio por usuario, así dos contraseñas iguales producen
- * hashes distintos.
- */
 // POO - Responsabilidad / Encapsulamiento: concentra cómo se protegen las contraseñas (hash + salt).
 public final class SeguridadPassword {
 
@@ -45,13 +39,9 @@ public final class SeguridadPassword {
     public static boolean verificar(String password, String salt, String hashEsperado) {
         byte[] calculado = hash(password, salt).getBytes(StandardCharsets.UTF_8);
         byte[] esperado = hashEsperado.getBytes(StandardCharsets.UTF_8);
-        // Comparación en tiempo constante.
         return MessageDigest.isEqual(calculado, esperado);
     }
 
-    /**
-     * Contraseña temporal legible (sin caracteres confusos como 0/O, 1/l).
-     */
     public static String generarTemporal(int largo) {
         StringBuilder sb = new StringBuilder(largo);
         for (int i = 0; i < largo; i++) {

@@ -4,10 +4,6 @@ import canchapro.servicios.ServicioAdicional;
 import canchapro.util.FormatoMoneda;
 import javax.swing.table.AbstractTableModel;
 
-/**
- * Tabla para elegir servicios adicionales: casilla "Agregar" y cantidad
- * editables.
- */
 // POO - Herencia: extiende AbstractTableModel de Swing.
 // POO - Polimorfismo: sobrescribe isCellEditable() y setValueAt() para que la tabla sea editable.
 public class ServicioSeleccionTableModel extends AbstractTableModel {
@@ -16,7 +12,6 @@ public class ServicioSeleccionTableModel extends AbstractTableModel {
     private static final int COL_AGREGAR = 0;
     private static final int COL_CANTIDAD = 4;
 
-    /** Fila editable de la tabla. */
     private static final class Fila {
 
         private final ServicioAdicional servicio;
@@ -122,7 +117,6 @@ public class ServicioSeleccionTableModel extends AbstractTableModel {
         if (columna == COL_AGREGAR) {
             f.seleccionado = Boolean.TRUE.equals(valor);
         } else if (columna == COL_CANTIDAD && valor instanceof Integer cantidad) {
-            // Valores fuera de rango se ajustan al mínimo/máximo permitido.
             f.cantidad = Math.max(1, Math.min(ServicioAdicional.CANTIDAD_MAXIMA, cantidad));
             f.seleccionado = true;
         }

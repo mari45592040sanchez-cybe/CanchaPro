@@ -3,9 +3,6 @@ package canchapro.tarifas;
 import canchapro.util.FormatoMoneda;
 import javax.swing.table.AbstractTableModel;
 
-/**
- * Muestra los tramos de un cálculo de precio. Se reutilizará en Nueva Reserva.
- */
 // POO - Herencia: extiende AbstractTableModel de Swing.
 // POO - Polimorfismo: la JTable llama a getRowCount(), getValueAt()... sin conocer la clase concreta.
 public class TramoTableModel extends AbstractTableModel {

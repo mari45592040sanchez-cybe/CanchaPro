@@ -13,9 +13,6 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Arrays;
 
-/**
- * Calcula los indicadores del día para la pantalla de inicio.
- */
 // POO - Responsabilidad: solo calcula los indicadores; la pantalla solo los muestra.
 public class DashboardServicio {
 
@@ -44,7 +41,6 @@ public class DashboardServicio {
             }
         }
 
-        // Pendientes y saldo se calculan sobre todas las reservas no canceladas.
         int pendientes = 0;
         BigDecimal saldoPorCobrar = BigDecimal.ZERO;
         for (Reserva r : reservaServicio.buscar(new FiltroReservas(null, null, null, null, null))) {
@@ -63,7 +59,6 @@ public class DashboardServicio {
                 saldoPorCobrar, porcentajeOcupacion(deHoy));
     }
 
-    /** Reservas de hoy no canceladas, en orden de hora. */
     public Reserva[] reservasDeHoy() {
         Reserva[] delDia = reservaServicio.reservasDelDia(LocalDate.now(reloj));
         // POO - Colecciones: se copian a un arreglo temporal solo las no canceladas.
@@ -78,10 +73,6 @@ public class DashboardServicio {
         return Arrays.copyOf(activas, cantidad);
     }
 
-    /**
-     * Porcentaje de las horas de atención de hoy (de las canchas disponibles)
-     * que ya están reservadas.
-     */
     private int porcentajeOcupacion(Reserva[] deHoy) {
         Cancha[] reservables = canchaServicio.listarReservables();
         long minutosAbiertos = 0;

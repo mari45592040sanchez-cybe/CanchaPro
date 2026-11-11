@@ -6,9 +6,6 @@ import java.time.DayOfWeek;
 import java.time.format.TextStyle;
 import java.util.Locale;
 
-/**
- * Cantidad de reservas según la hora de inicio y el día de la semana.
- */
 // POO - Herencia: hereda de ReporteBase las funciones comunes de los reportes.
 // POO - Polimorfismo: sobrescribe getNombre(), filtrosAplicables() y generar().
 public class ReporteHorariosMayorDemanda extends ReporteBase {
@@ -64,7 +61,7 @@ public class ReporteHorariosMayorDemanda extends ReporteBase {
                 total += conteo[hora][d];
             }
             if (total == 0) {
-                continue; // Solo se muestran las horas con reservas.
+                continue;
             }
             Object[] valores = new Object[diasSemana.length + 2];
             valores[0] = String.format("%02d:00 - %02d:59", hora, hora);

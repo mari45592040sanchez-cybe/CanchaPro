@@ -7,9 +7,6 @@ import canchapro.reservas.ReservaServicio;
 import java.time.LocalDate;
 import java.util.Arrays;
 
-/**
- * Cantidad de reservas, horas e importe por cada día del período.
- */
 // POO - Herencia: hereda de ReporteBase las funciones comunes de los reportes.
 // POO - Polimorfismo: sobrescribe getNombre(), filtrosAplicables() y generar().
 public class ReporteReservasPorFecha extends ReporteBase {

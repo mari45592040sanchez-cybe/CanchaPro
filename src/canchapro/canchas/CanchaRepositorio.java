@@ -5,10 +5,6 @@ import canchapro.persistencia.RepositorioCsv;
 import canchapro.util.FormatoFecha;
 import java.nio.file.Path;
 
-/**
- * Canchas guardadas en canchas.csv:
- * codigo;nombre;tipo;capacidad;estado;horaApertura;horaCierre;descripcion
- */
 // POO - Herencia / Reutilización: hereda de RepositorioCsv toda la lógica de cargar, guardar y buscar;
 // aquí solo se define el formato del archivo de canchas.
 public class CanchaRepositorio extends RepositorioCsv<Cancha> {
@@ -19,7 +15,6 @@ public class CanchaRepositorio extends RepositorioCsv<Cancha> {
         super(carpetaDatos.resolve(ARCHIVO));
     }
 
-    // --- Formato del archivo ---
     // POO - Polimorfismo: sobrescritura (@Override) de los métodos abstractos de RepositorioCsv.
 
     @Override

@@ -6,10 +6,6 @@ import java.awt.Font;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
-/**
- * Muestra el estado de la cancha con color: verde (disponible),
- * ámbar (mantenimiento) y gris (inactiva).
- */
 // POO - Herencia / Polimorfismo: extiende DefaultTableCellRenderer y sobrescribe cómo se dibuja la celda.
 public class EstadoCanchaRenderer extends DefaultTableCellRenderer {
 

@@ -4,10 +4,6 @@ import canchapro.usuarios.Persona;
 import java.time.LocalDate;
 import java.util.Objects;
 
-/**
- * Cliente del complejo deportivo. Se reutiliza en cada reserva o venta.
- * Nunca se elimina: se desactiva para conservar su historial.
- */
 // POO - Herencia: Cliente ES UNA Persona; hereda código, nombre, teléfono y correo con sus validaciones.
 public class Cliente extends Persona {
 
@@ -40,7 +36,6 @@ public class Cliente extends Persona {
         this.activo = activo;
     }
 
-    /** Texto para listas y combos: "CLI-0001 - Juan Pérez (55551234)". */
     public String getDescripcion() {
         return getCodigo() + " - " + getNombre() + " (" + getTelefono() + ")";
     }

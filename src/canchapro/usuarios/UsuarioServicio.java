@@ -7,9 +7,6 @@ import canchapro.util.excepciones.ReglaNegocioException;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/**
- * Reglas de negocio para la gestión de usuarios (administradores y empleados).
- */
 // POO - Responsabilidad: reglas de negocio de usuarios (no repetir username, siempre un admin activo...).
 public class UsuarioServicio {
 
@@ -25,13 +22,6 @@ public class UsuarioServicio {
         this.repositorio = repositorio;
     }
 
-    /**
-     * Garantiza que exista al menos un administrador activo. Si no hay
-     * ninguno (primer arranque), crea el usuario admin / admin123 y le
-     * obliga a cambiar la contraseña en el primer ingreso.
-     *
-     * @return true si se creó el administrador inicial
-     */
     public boolean asegurarAdministrador() {
         if (repositorio.contarAdministradoresActivos() > 0) {
             return false;
@@ -49,7 +39,6 @@ public class UsuarioServicio {
         return true;
     }
 
-    /** Todos los usuarios ordenados por código. */
     public Usuario[] listar() {
         // POO - Colecciones: el repositorio entrega una copia del arreglo; se ordena sin afectar el original.
         Usuario[] usuarios = repositorio.listar();
@@ -62,12 +51,6 @@ public class UsuarioServicio {
                 .orElseThrow(() -> new EntidadNoEncontradaException("No existe el usuario " + codigo));
     }
 
-    /**
-     * Registra un nuevo usuario. La contraseña inicial deberá cambiarse en
-     * el primer ingreso.
-     *
-     * @param modulos módulos visibles (solo aplica a empleados)
-     */
     public Usuario registrar(Rol rol, String nombre, String telefono, String correo,
             String username, String passwordInicial, Modulo[] modulos) {
         if (rol == null) {
@@ -91,12 +74,6 @@ public class UsuarioServicio {
         return usuario;
     }
 
-    /**
-     * Actualiza datos personales, nombre de usuario y, si es empleado, sus
-     * módulos. El rol no se puede cambiar después de creado el usuario.
-     * Todas las validaciones se hacen antes de modificar el objeto, para no
-     * dejarlo a medio actualizar si algún dato es inválido.
-     */
     public Usuario actualizar(String codigo, String nombre, String telefono, String correo,
             String username, Modulo[] modulos) {
         Usuario usuario = obtener(codigo);
@@ -127,11 +104,6 @@ public class UsuarioServicio {
         return usuario;
     }
 
-    /**
-     * Activa o desactiva un usuario. Los usuarios nunca se eliminan.
-     *
-     * @param responsable usuario que realiza la operación
-     */
     public void cambiarEstado(String codigo, boolean activo, Usuario responsable) {
         Usuario usuario = obtener(codigo);
         if (usuario.isActivo() == activo) {
@@ -150,11 +122,6 @@ public class UsuarioServicio {
         repositorio.guardar();
     }
 
-    /**
-     * Genera una contraseña temporal que el usuario deberá cambiar al ingresar.
-     *
-     * @return la contraseña temporal, para entregarla al usuario
-     */
     public String restablecerPassword(String codigo) {
         Usuario usuario = obtener(codigo);
         String temporal = SeguridadPassword.generarTemporal(LARGO_PASSWORD_TEMPORAL);

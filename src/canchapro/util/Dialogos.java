@@ -6,19 +6,12 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 
-/**
- * Diálogos de uso común en las pantallas.
- */
 // POO - Reutilización: mensajes y diálogos comunes para todas las pantallas.
 public final class Dialogos {
 
     private Dialogos() {
     }
 
-    /**
-     * Muestra un texto con letra de ancho fijo (para que los importes queden
-     * alineados), precedido de un encabezado.
-     */
     public static void mostrarTexto(Component padre, String titulo, String encabezado, String texto) {
         JTextArea area = new JTextArea(texto);
         area.setEditable(false);

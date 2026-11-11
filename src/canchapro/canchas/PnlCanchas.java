@@ -9,18 +9,13 @@ import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 
-/**
- * Pantalla de administración de canchas: datos, tipo, horario y estado.
- */
 // POO - Herencia: la pantalla extiende JPanel de Swing.
 public class PnlCanchas extends javax.swing.JPanel {
 
     // POO - Relaciones / Responsabilidad: la pantalla usa el servicio para las reglas de negocio.
     private final CanchaServicio servicio;
     private final CanchaTableModel modeloTabla = new CanchaTableModel();
-    /** Código de la cancha en edición; null cuando se registra una nueva. */
     private String codigoSeleccionado;
-    /** Devuelve las reservas futuras de una cancha (descripción), para advertir antes de deshabilitarla. */
     private Function<String, String[]> reservasAfectadas = codigo -> new String[0];
 
     public PnlCanchas(CanchaServicio servicio) {
@@ -51,12 +46,6 @@ public class PnlCanchas extends javax.swing.JPanel {
         this.reservasAfectadas = consulta;
     }
 
-    /**
-     * Si la cancha deja de estar disponible y tiene reservas futuras, se
-     * listan para que el operador decida. Las reservas no se cancelan solas.
-     *
-     * @return true si se puede continuar con el cambio
-     */
     private boolean confirmarReservasAfectadas(String codigo) {
         String[] afectadas = reservasAfectadas.apply(codigo);
         if (afectadas.length == 0) {
@@ -109,7 +98,6 @@ public class PnlCanchas extends javax.swing.JPanel {
         spnCapacidad.setValue(TipoCancha.FUTBOL_5.getCapacidadSugerida());
         cboApertura.setSelectedItem(LocalTime.of(8, 0));
         cboCierre.setSelectedItem(LocalTime.of(23, 0));
-        // Una cancha nueva siempre inicia DISPONIBLE.
         cboEstado.setSelectedItem(EstadoCancha.DISPONIBLE);
         cboEstado.setEnabled(false);
         txtDescripcion.setText("");
@@ -389,7 +377,6 @@ public class PnlCanchas extends javax.swing.JPanel {
     }//GEN-LAST:event_btnGuardarActionPerformed
 
     private void cboTipoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cboTipoActionPerformed
-        // Al registrar una cancha nueva se propone la capacidad típica del tipo elegido.
         if (codigoSeleccionado == null && cboTipo.getSelectedItem() instanceof TipoCancha tipo) {
             spnCapacidad.setValue(tipo.getCapacidadSugerida());
         }

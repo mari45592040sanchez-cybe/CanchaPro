@@ -1,9 +1,5 @@
 package canchapro.usuarios;
 
-/**
- * Módulos (pantallas) del sistema. El orden de declaración es el orden en
- * que aparecen en el menú principal.
- */
 // POO - Encapsulamiento: cada módulo guarda su nombre visible y si es exclusivo del administrador.
 public enum Modulo {
 
@@ -32,7 +28,6 @@ public enum Modulo {
         return nombreVisible;
     }
 
-    /** Los módulos exclusivos del administrador no se pueden asignar a empleados. */
     public boolean isSoloAdministrador() {
         return soloAdministrador;
     }

@@ -5,9 +5,6 @@ import canchapro.canchas.CanchaServicio;
 import canchapro.reservas.Reserva;
 import canchapro.reservas.ReservaServicio;
 
-/**
- * Reservas, horas e importe de cada cancha en el período.
- */
 // POO - Herencia: hereda de ReporteBase las funciones comunes de los reportes.
 // POO - Polimorfismo: sobrescribe getNombre(), filtrosAplicables() y generar().
 public class ReporteReservasPorCancha extends ReporteBase {

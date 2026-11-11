@@ -9,10 +9,6 @@ import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
 
-/**
- * Conversión de campos de texto del CSV a tipos Java, con mensajes claros
- * cuando el valor no es válido.
- */
 // POO - Reutilización: conversiones de texto a fecha, número, booleano... que usan todos los repositorios.
 public final class CamposCsv {
 
@@ -36,7 +32,6 @@ public final class CamposCsv {
         }
     }
 
-    /** Fecha en formato yyyy-MM-dd. */
     public static LocalDate fecha(String valor, String campo) {
         try {
             return LocalDate.parse(valor.trim(), FormatoFecha.ARCHIVO_FECHA);
@@ -45,7 +40,6 @@ public final class CamposCsv {
         }
     }
 
-    /** Hora en formato HH:mm. */
     public static LocalTime hora(String valor, String campo) {
         try {
             return LocalTime.parse(valor.trim(), FormatoFecha.ARCHIVO_HORA);
@@ -54,7 +48,6 @@ public final class CamposCsv {
         }
     }
 
-    /** Fecha y hora en formato yyyy-MM-ddTHH:mm:ss. */
     public static LocalDateTime fechaHora(String valor, String campo) {
         try {
             return LocalDateTime.parse(valor.trim(), FormatoFecha.ARCHIVO_FECHA_HORA);
@@ -72,7 +65,6 @@ public final class CamposCsv {
         }
     }
 
-    /** Monto con punto decimal, por ejemplo 150.00 */
     public static BigDecimal decimal(String valor, String campo) {
         try {
             return new BigDecimal(valor.trim());

@@ -1,16 +1,5 @@
 package canchapro.reservas;
 
-/**
- * Estados de una reserva y transiciones permitidas.
- *
- * <pre>
- * PENDIENTE  → CONFIRMADA, EN_CURSO, CANCELADA
- * CONFIRMADA → EN_CURSO, CANCELADA
- * EN_CURSO   → FINALIZADA
- * FINALIZADA → (ninguno)
- * CANCELADA  → (ninguno)
- * </pre>
- */
 // POO - Encapsulamiento: enumeración con comportamiento; ella misma decide a qué estados puede pasar.
 public enum EstadoReserva {
 
@@ -26,7 +15,6 @@ public enum EstadoReserva {
         this.nombreVisible = nombreVisible;
     }
 
-    /** Estados a los que se puede pasar desde este. */
     // POO - Colecciones: cada estado devuelve un arreglo con los estados siguientes permitidos.
     public EstadoReserva[] siguientesPermitidos() {
         return switch (this) {
@@ -46,12 +34,10 @@ public enum EstadoReserva {
         return false;
     }
 
-    /** Un estado final ya no cambia. */
     public boolean esFinal() {
         return siguientesPermitidos().length == 0;
     }
 
-    /** Toda reserva no cancelada ocupa la cancha en su horario. */
     public boolean ocupaCancha() {
         return this != CANCELADA;
     }
@@ -60,7 +46,6 @@ public enum EstadoReserva {
         return puedeTransicionarA(CANCELADA);
     }
 
-    /** Se pueden recibir pagos en cualquier estado excepto CANCELADA. */
     public boolean permitePagos() {
         return this != CANCELADA;
     }

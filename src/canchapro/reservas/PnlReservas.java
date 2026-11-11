@@ -17,9 +17,6 @@ import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 
-/**
- * Listado de reservas con filtros, detalle, cancelación y registro de pagos.
- */
 // POO - Herencia: extiende JPanel. POO - Polimorfismo: implementa Refrescable.
 public class PnlReservas extends javax.swing.JPanel implements Refrescable {
 
@@ -67,7 +64,6 @@ public class PnlReservas extends javax.swing.JPanel implements Refrescable {
         buscar();
     }
 
-    /** Muestra una reserva concreta (por ejemplo, la recién creada). */
     public void mostrarReserva(Reserva reserva) {
         SelectorFecha.establecer(spnDesde, reserva.getFecha());
         SelectorFecha.establecer(spnHasta, reserva.getFecha());

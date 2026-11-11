@@ -7,15 +7,11 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
 
-/**
- * Catálogo de servicios adicionales que se pueden agregar a una reserva.
- */
 // POO - Herencia: la pantalla extiende JPanel de Swing.
 public class PnlServicios extends javax.swing.JPanel {
 
     private final ServicioAdicionalServicio servicio;
     private final ServicioAdicionalTableModel modeloTabla = new ServicioAdicionalTableModel();
-    /** Código del servicio en edición; null cuando se registra uno nuevo. */
     private String codigoSeleccionado;
 
     public PnlServicios(ServicioAdicionalServicio servicio) {

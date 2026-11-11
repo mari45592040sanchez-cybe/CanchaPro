@@ -9,10 +9,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
 
-/**
- * Dinero recibido (pagos) por día y por método de pago. Con el período de
- * un mes completo es el reporte mensual de ingresos.
- */
 // POO - Herencia: hereda de ReporteBase las funciones comunes de los reportes.
 // POO - Polimorfismo: sobrescribe getNombre(), filtrosAplicables() y generar().
 public class ReporteIngresosPorPeriodo extends ReporteBase {
@@ -43,7 +39,6 @@ public class ReporteIngresosPorPeriodo extends ReporteBase {
     @Override
     public ResultadoReporte generar(FiltroReporte f) {
         MetodoPago[] metodos = MetodoPago.values();
-        // Columnas: Fecha, un método de pago por columna, Pagos y Total del día.
         String[] columnas = new String[metodos.length + 3];
         columnas[0] = "Fecha";
         for (int i = 0; i < metodos.length; i++) {
@@ -53,7 +48,6 @@ public class ReporteIngresosPorPeriodo extends ReporteBase {
         columnas[metodos.length + 2] = "Total del día";
         ResultadoReporte r = new ResultadoReporte(getNombre(), periodo(f), columnas);
 
-        // Los pagos llegan ordenados por fecha y hora: se recorren agrupando los del mismo día.
         Pago[] pagos = pagoServicio.pagosPorPeriodo(f.desde(), f.hasta());
         // POO - Colecciones: total por método de pago; la posición es el ordinal del método.
         BigDecimal[] totalesMetodo = new BigDecimal[metodos.length];

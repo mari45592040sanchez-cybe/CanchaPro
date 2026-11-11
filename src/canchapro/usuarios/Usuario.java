@@ -33,14 +33,10 @@ public abstract class Usuario extends Persona {
         this.debeCambiarPassword = debeCambiarPassword;
     }
 
-    /** Rol del usuario, usado para guardarlo en archivo y mostrarlo. */
     // POO - Polimorfismo: métodos abstractos; cada subclase da su propia implementación.
     public abstract Rol getRol();
 
-    /** Indica si el usuario puede ver y usar el módulo indicado. */
     public abstract boolean puedeAcceder(Modulo modulo);
-
-    // --- Validaciones ---
 
     public static String validarUsername(String username) {
         String limpio = Validador.requerido(username, "El nombre de usuario");
@@ -57,17 +53,10 @@ public abstract class Usuario extends Persona {
         }
     }
 
-    // --- Contraseña ---
-
     public boolean verificarPassword(String password) {
         return password != null && SeguridadPassword.verificar(password, salt, passwordHash);
     }
 
-    /**
-     * Guarda una nueva contraseña (como hash con un salt nuevo).
-     *
-     * @param debeCambiar true si el usuario deberá cambiarla en su próximo ingreso
-     */
     public void establecerPassword(String password, boolean debeCambiar) {
         validarPassword(password);
         this.salt = SeguridadPassword.generarSalt();

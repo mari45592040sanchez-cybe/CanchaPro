@@ -3,9 +3,6 @@ package canchapro.tarifas;
 import canchapro.util.FormatoMoneda;
 import javax.swing.table.AbstractTableModel;
 
-/**
- * Modelo de la tabla de tarifas.
- */
 // POO - Herencia: extiende AbstractTableModel de Swing.
 // POO - Polimorfismo: la JTable llama a getRowCount(), getValueAt()... sin conocer la clase concreta.
 public class TarifaTableModel extends AbstractTableModel {

@@ -3,9 +3,6 @@ package canchapro.tarifas;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 
-/**
- * Agrupación de días para las tarifas.
- */
 // POO - Encapsulamiento: enumeración con comportamiento (de(fecha) decide el tipo de día).
 public enum TipoDia {
 
@@ -18,7 +15,6 @@ public enum TipoDia {
         this.nombreVisible = nombreVisible;
     }
 
-    /** Tipo de día que corresponde a una fecha. */
     public static TipoDia de(LocalDate fecha) {
         DayOfWeek dia = fecha.getDayOfWeek();
         return dia == DayOfWeek.SATURDAY || dia == DayOfWeek.SUNDAY ? SABADO_DOMINGO : LUNES_VIERNES;

@@ -2,6 +2,7 @@ package canchapro.configuracion;
 
 import canchapro.persistencia.RegistroErroresCarga;
 import canchapro.util.excepciones.CanchaProException;
+import canchapro.util.excepciones.ReglaNegocioException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -9,16 +10,11 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
-/**
- * Cambios de configuración sin recompilar y recarga de los archivos de datos.
- *
- * Patrón Observador: las pantallas se registran como oyentes para
- * enterarse cuando cambia la configuración (por ejemplo, para mostrar u
- * ocultar la Tienda) o cuando se vuelven a leer los archivos.
- */
 public class ConfiguracionServicio {
 
     private static final int LINEAS_BITACORA = 300;
+    // POO - Atributo constante: carné (código fijo) que se pide para habilitar o deshabilitar el módulo Tienda.
+    private static final String CARNE_MODULO_TIENDA = "3623";
 
     // POO - Relaciones (composición): el servicio TIENE la configuración y su repositorio.
     private final Configuracion configuracion;
@@ -29,9 +25,6 @@ public class ConfiguracionServicio {
     private final Oyentes oyentesCambios = new Oyentes();
     private final Oyentes oyentesRecarga = new Oyentes();
 
-    /**
-     * @param recargador vuelve a leer todos los archivos y devuelve los errores encontrados
-     */
     public ConfiguracionServicio(Configuracion configuracion, ConfiguracionRepositorio repositorio,
             Path carpetaDatos, Supplier<RegistroErroresCarga> recargador) {
         this.configuracion = configuracion;
@@ -52,8 +45,6 @@ public class ConfiguracionServicio {
         return repositorio.getArchivo().toAbsolutePath();
     }
 
-    // --- Observadores ---
-
     public void agregarOyenteCambios(Runnable oyente) {
         oyentesCambios.agregar(oyente);
     }
@@ -67,14 +58,14 @@ public class ConfiguracionServicio {
         oyentesRecarga.quitar(oyente);
     }
 
-    // --- Operaciones ---
+    // POO - Método: compara el carné ingresado con el código fijo; si no coincide lanza una excepción.
+    public void validarCarneTienda(String carne) {
+        if (carne == null || !CARNE_MODULO_TIENDA.equals(carne.trim())) {
+            throw new ReglaNegocioException("Código inválido. No se cambió el módulo Tienda / Cafetería.");
+        }
+    }
 
-    /**
-     * Valida y guarda la configuración en canchapro.properties. Los cambios
-     * aplican de inmediato (no hace falta reiniciar).
-     */
     public void guardar(String nombreNegocio, boolean moduloTienda, int anticipoMinimoPorcentaje) {
-        // Se valida con una copia para no dejar la configuración a medias.
         Configuracion propuesta = new Configuracion();
         propuesta.setNombreNegocio(nombreNegocio);
         propuesta.setModuloTienda(moduloTienda);
@@ -88,19 +79,12 @@ public class ConfiguracionServicio {
         oyentesCambios.notificar();
     }
 
-    /**
-     * Vuelve a leer todos los archivos de datos (por ejemplo, después de
-     * copiar datos de prueba) y avisa a las pantallas.
-     *
-     * @return errores encontrados durante la lectura
-     */
     public RegistroErroresCarga recargarArchivos() {
         RegistroErroresCarga registro = recargador.get();
         oyentesRecarga.notificar();
         return registro;
     }
 
-    /** Últimas líneas de la bitácora de errores de carga. */
     public String leerBitacora() {
         Path archivo = carpetaDatos.resolve(RegistroErroresCarga.ARCHIVO_LOG);
         if (Files.notExists(archivo)) {
@@ -116,9 +100,6 @@ public class ConfiguracionServicio {
         }
     }
 
-    /**
-     * Grupo de oyentes guardado en un arreglo con su contador.
-     */
     // POO - Encapsulamiento: el arreglo es privado; solo se agrega, se quita o se notifica.
     // POO - Colecciones: arreglo de objetos Runnable; si se llena, se crea uno del doble de tamaño.
     private static final class Oyentes {
@@ -134,7 +115,6 @@ public class ConfiguracionServicio {
             cantidad++;
         }
 
-        /** Quita el oyente y corre una posición hacia arriba los siguientes. */
         void quitar(Runnable oyente) {
             for (int i = 0; i < cantidad; i++) {
                 if (lista[i] == oyente) {
@@ -149,7 +129,6 @@ public class ConfiguracionServicio {
         }
 
         void notificar() {
-            // Copia: un oyente podría quitarse a sí mismo mientras se notifica.
             Runnable[] copia = Arrays.copyOf(lista, cantidad);
             for (Runnable oyente : copia) {
                 oyente.run();

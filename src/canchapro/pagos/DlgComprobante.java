@@ -4,9 +4,6 @@ import java.awt.Window;
 import java.awt.print.PrinterException;
 import javax.swing.JOptionPane;
 
-/**
- * Muestra un comprobante con letra de ancho fijo y permite imprimirlo.
- */
 // POO - Herencia: extiende JDialog de Swing.
 public class DlgComprobante extends javax.swing.JDialog {
 

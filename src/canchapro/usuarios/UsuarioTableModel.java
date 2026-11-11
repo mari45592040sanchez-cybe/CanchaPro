@@ -2,9 +2,6 @@ package canchapro.usuarios;
 
 import javax.swing.table.AbstractTableModel;
 
-/**
- * Modelo de la tabla de usuarios.
- */
 // POO - Herencia: extiende AbstractTableModel de Swing.
 // POO - Polimorfismo: la JTable llama a getRowCount(), getValueAt()... sin saber que es un modelo de usuarios.
 public class UsuarioTableModel extends AbstractTableModel {

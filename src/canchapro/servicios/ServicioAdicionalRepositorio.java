@@ -4,10 +4,6 @@ import canchapro.persistencia.CamposCsv;
 import canchapro.persistencia.RepositorioCsv;
 import java.nio.file.Path;
 
-/**
- * Servicios adicionales guardados en servicios.csv:
- * codigo;nombre;descripcion;precio;tipoCobro;activo
- */
 // POO - Herencia / Reutilización: hereda de RepositorioCsv; aquí solo se define el formato de servicios.csv.
 // POO - Polimorfismo: los métodos con @Override implementan los métodos abstractos de RepositorioCsv.
 public class ServicioAdicionalRepositorio extends RepositorioCsv<ServicioAdicional> {
@@ -17,8 +13,6 @@ public class ServicioAdicionalRepositorio extends RepositorioCsv<ServicioAdicion
     public ServicioAdicionalRepositorio(Path carpetaDatos) {
         super(carpetaDatos.resolve(ARCHIVO));
     }
-
-    // --- Formato del archivo ---
 
     @Override
     protected String encabezado() {

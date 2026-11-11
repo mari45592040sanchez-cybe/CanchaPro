@@ -8,9 +8,6 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/**
- * Reglas de negocio del catálogo de servicios adicionales.
- */
 // POO - Responsabilidad: reglas del catálogo de servicios (nombre único, activar/desactivar).
 public class ServicioAdicionalServicio {
 
@@ -23,11 +20,6 @@ public class ServicioAdicionalServicio {
         this.repositorio = repositorio;
     }
 
-    /**
-     * Primer arranque: crea un catálogo de ejemplo.
-     *
-     * @return true si se crearon
-     */
     public boolean asegurarDatosIniciales() {
         if (!repositorio.estaVacio()) {
             return false;
@@ -45,7 +37,6 @@ public class ServicioAdicionalServicio {
         repositorio.agregar(new ServicioAdicional(codigo, nombre, descripcion, new BigDecimal(precio), tipo, true));
     }
 
-    /** Todos los servicios ordenados por código. */
     public ServicioAdicional[] listar() {
         // POO - Colecciones: el repositorio entrega una copia del arreglo; se ordena sin afectar el original.
         ServicioAdicional[] servicios = repositorio.listar();
@@ -53,7 +44,6 @@ public class ServicioAdicionalServicio {
         return servicios;
     }
 
-    /** Servicios que se pueden agregar a una reserva nueva. */
     public ServicioAdicional[] listarActivos() {
         ServicioAdicional[] todos = listar();
         ServicioAdicional[] activos = new ServicioAdicional[todos.length];
@@ -81,10 +71,6 @@ public class ServicioAdicionalServicio {
         return servicio;
     }
 
-    /**
-     * Cambiar el precio no afecta reservas ya creadas: cada reserva guarda
-     * el precio unitario vigente al momento de crearse.
-     */
     public ServicioAdicional actualizar(String codigo, String nombre, String descripcion, BigDecimal precio,
             TipoCobro tipoCobro) {
         ServicioAdicional servicio = obtener(codigo);
@@ -95,10 +81,6 @@ public class ServicioAdicionalServicio {
         return servicio;
     }
 
-    /**
-     * Un servicio inactivo no aparece al crear reservas, pero las reservas
-     * antiguas que lo usaron lo conservan.
-     */
     public void cambiarEstado(String codigo, boolean activo) {
         ServicioAdicional servicio = obtener(codigo);
         if (servicio.isActivo() == activo) {

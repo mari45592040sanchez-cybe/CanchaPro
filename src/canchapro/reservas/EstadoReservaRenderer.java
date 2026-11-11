@@ -6,9 +6,6 @@ import java.awt.Font;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
-/**
- * Muestra el estado de la reserva con color.
- */
 // POO - Herencia / Polimorfismo: extiende DefaultTableCellRenderer y sobrescribe cómo se dibuja la celda.
 public class EstadoReservaRenderer extends DefaultTableCellRenderer {
 

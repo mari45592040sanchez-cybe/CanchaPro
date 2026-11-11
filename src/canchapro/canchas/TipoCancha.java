@@ -1,8 +1,5 @@
 package canchapro.canchas;
 
-/**
- * Tipos de cancha. La capacidad sugerida se propone al registrar una cancha.
- */
 // POO - Encapsulamiento: enumeración con sus propios atributos (nombre y capacidad sugerida).
 public enum TipoCancha {
 

@@ -1,13 +1,5 @@
 package canchapro.persistencia;
 
-/**
- * Un problema encontrado al leer un archivo de datos o de configuración.
- *
- * @param archivo   nombre del archivo
- * @param linea     número de línea (0 cuando el error no corresponde a una línea concreta)
- * @param contenido texto original de la línea (vacío si no aplica)
- * @param motivo    explicación del problema
- */
 // POO - Encapsulamiento: record inmutable con los datos de un error de carga.
 public record ErrorCarga(String archivo, int linea, String contenido, String motivo) {
 

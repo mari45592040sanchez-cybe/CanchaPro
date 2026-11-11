@@ -23,9 +23,6 @@ import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 
-/**
- * Pantalla de inicio: indicadores del día y reservas de hoy.
- */
 // POO - Herencia: extiende JPanel. POO - Polimorfismo: implementa Refrescable (se actualiza cada minuto).
 // POO - Relaciones: usa DashboardServicio para los cálculos; la pantalla solo los muestra.
 public class PnlDashboard extends javax.swing.JPanel implements Refrescable {
@@ -53,11 +50,6 @@ public class PnlDashboard extends javax.swing.JPanel implements Refrescable {
     private final Tarjeta[] tarjetasExtra;
     private final Indicador[] indicadoresExtra;
 
-    /**
-     * @param navegar abre un módulo de la ventana principal
-     * @param puedeVer indica si el usuario tiene acceso a un módulo
-     * @param extras indicadores de módulos opcionales (puede estar vacío)
-     */
     public PnlDashboard(DashboardServicio servicio, Consumer<Modulo> navegar, Predicate<Modulo> puedeVer,
             Indicador[] extras) {
         this.servicio = servicio;
@@ -78,7 +70,6 @@ public class PnlDashboard extends javax.swing.JPanel implements Refrescable {
             indicadoresExtra[i] = extras[i];
             tarjetas[fijas.length + i] = tarjeta;
         }
-        // Cuatro tarjetas por fila.
         for (int i = 0; i < tarjetas.length; i++) {
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.gridx = i % 4;
@@ -93,7 +84,6 @@ public class PnlDashboard extends javax.swing.JPanel implements Refrescable {
         tblReservasHoy.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tblReservasHoy.setDefaultRenderer(EstadoReserva.class, new EstadoReservaRenderer());
 
-        // Los accesos rápidos solo aparecen si el usuario tiene el módulo.
         btnNuevaReserva.setVisible(puedeVer.test(Modulo.RESERVAS));
         btnDisponibilidad.setVisible(puedeVer.test(Modulo.DISPONIBILIDAD));
         btnPagos.setVisible(puedeVer.test(Modulo.PAGOS));
@@ -123,7 +113,6 @@ public class PnlDashboard extends javax.swing.JPanel implements Refrescable {
         lblFecha.setText(FormatoReserva.fechaLarga(r.fecha()) + "  ·  actualizado a las " + LocalTime.now().format(HORA));
     }
 
-    /** Recuadro con un indicador: título pequeño y valor grande. */
     private static final class Tarjeta extends JPanel {
 
         private final JLabel lblValor = new JLabel("-");

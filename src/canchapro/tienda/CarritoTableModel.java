@@ -5,10 +5,6 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import javax.swing.table.AbstractTableModel;
 
-/**
- * Carrito de la venta en curso. Si se agrega un producto que ya está, se
- * suma la cantidad.
- */
 // POO - Herencia: extiende AbstractTableModel de Swing.
 // POO - Polimorfismo: la JTable llama a getRowCount(), getValueAt()... sin conocer la clase concreta.
 public class CarritoTableModel extends AbstractTableModel {
@@ -19,7 +15,6 @@ public class CarritoTableModel extends AbstractTableModel {
     private ItemVenta[] items = new ItemVenta[10];
     private int cantidad;
 
-    /** Cantidad que ya hay de un producto en el carrito. */
     public int cantidadDe(Producto producto) {
         int total = 0;
         for (int i = 0; i < cantidad; i++) {
@@ -46,7 +41,6 @@ public class CarritoTableModel extends AbstractTableModel {
         fireTableRowsInserted(cantidad - 1, cantidad - 1);
     }
 
-    /** Quita la fila y corre una posición hacia arriba los items siguientes. */
     public void quitar(int fila) {
         for (int i = fila; i < cantidad - 1; i++) {
             items[i] = items[i + 1];
@@ -62,7 +56,6 @@ public class CarritoTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
-    /** Copia de los items, del tamaño exacto. */
     public ItemVenta[] getItems() {
         return Arrays.copyOf(items, cantidad);
     }

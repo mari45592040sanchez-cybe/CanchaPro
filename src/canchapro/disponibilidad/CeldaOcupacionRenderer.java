@@ -9,14 +9,9 @@ import javax.swing.JTable;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 
-/**
- * Dibuja cada bloque de la grilla de ocupación con el color de su estado.
- * Los bloques del horario consultado se enmarcan en azul.
- */
 // POO - Herencia / Polimorfismo: extiende DefaultTableCellRenderer y sobrescribe cómo se dibuja cada celda.
 public class CeldaOcupacionRenderer extends DefaultTableCellRenderer {
 
-    /** Color de fondo de cada tipo de celda (también se usa en la leyenda). */
     public static Color colorDe(TipoCelda tipo) {
         return switch (tipo) {
             case LIBRE -> new Color(220, 252, 231);

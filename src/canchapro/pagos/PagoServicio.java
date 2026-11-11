@@ -13,13 +13,6 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/**
- * Consultas de pagos e ingresos. El registro de un pago se delega en
- * {@link ReservaServicio}, porque los pagos forman parte de la reserva y es
- * ella quien valida el saldo y su estado.
- *
- * Los ingresos se cuentan por la fecha en que se recibió el pago.
- */
 // POO - Responsabilidad: consultas de pagos e ingresos; el registro del pago lo valida la reserva.
 public class PagoServicio {
 
@@ -41,11 +34,6 @@ public class PagoServicio {
         return reservas.registrarPago(codigoReserva, monto, metodo, observacion, usuario);
     }
 
-    /**
-     * Reservas para cobrar, buscadas por código o cliente.
-     *
-     * @param soloConSaldo true para mostrar solo reservas no canceladas con saldo pendiente
-     */
     public Reserva[] buscarReservas(String texto, boolean soloConSaldo) {
         Reserva[] todas = reservas.buscar(new FiltroReservas(null, null, null, null, texto));
         // POO - Colecciones: se copian a un arreglo temporal solo las que cumplen el filtro.
@@ -75,7 +63,6 @@ public class PagoServicio {
                 .orElseThrow(() -> new EntidadNoEncontradaException("No existe el pago " + codigoPago));
     }
 
-    /** Pagos recibidos entre dos fechas (incluidas), del más antiguo al más reciente. */
     public Pago[] pagosPorPeriodo(LocalDate desde, LocalDate hasta) {
         validarPeriodo(desde, hasta);
         Pago[] encontrados = pagos.listarPorPeriodo(desde, hasta);
@@ -112,7 +99,6 @@ public class PagoServicio {
         return ingresosPorPeriodo(hoy, hoy);
     }
 
-    /** Texto del comprobante de un pago. */
     public String comprobante(String codigoPago) {
         Pago pago = obtener(codigoPago);
         return FormatoPago.comprobante(pago, reservas.obtener(pago.getCodigoReserva()), configuracion.getNombreNegocio());

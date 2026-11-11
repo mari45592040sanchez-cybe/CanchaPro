@@ -7,11 +7,6 @@ import java.util.Date;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerDateModel;
 
-/**
- * Convierte un {@link JSpinner} en un selector de fecha (dd/MM/yyyy) que
- * trabaja con {@link LocalDate}. Swing todavía usa java.util.Date, así que
- * la conversión queda encapsulada aquí.
- */
 public final class SelectorFecha {
 
     private SelectorFecha() {

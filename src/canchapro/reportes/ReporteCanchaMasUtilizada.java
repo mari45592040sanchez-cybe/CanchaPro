@@ -9,9 +9,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/**
- * Ranking de canchas por horas reservadas y porcentaje de ocupación.
- */
 // POO - Herencia: hereda de ReporteBase las funciones comunes de los reportes.
 // POO - Polimorfismo: sobrescribe getNombre(), filtrosAplicables() y generar().
 public class ReporteCanchaMasUtilizada extends ReporteBase {
@@ -38,7 +35,6 @@ public class ReporteCanchaMasUtilizada extends ReporteBase {
         return new Filtro[]{Filtro.FECHAS};
     }
 
-    /** Datos de una cancha para ordenar el ranking. */
     // POO - Encapsulamiento: record privado e inmutable, solo lo usa este reporte.
     private record Uso(Cancha cancha, int reservas, long minutos) {
     }

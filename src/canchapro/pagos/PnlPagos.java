@@ -16,10 +16,6 @@ import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 
-/**
- * Pantalla de pagos: buscar una reserva, ver su total, lo pagado y el saldo,
- * registrar abonos y ver o imprimir el comprobante de cada pago.
- */
 // POO - Herencia: la pantalla extiende JPanel de Swing.
 public class PnlPagos extends javax.swing.JPanel implements Refrescable {
 
@@ -116,7 +112,6 @@ public class PnlPagos extends javax.swing.JPanel implements Refrescable {
         DlgRegistrarPago.registrar(SwingUtilities.getWindowAncestor(this), reservaServicio,
                 reservaServicio.obtener(codigo), sesion.getUsuario(), configuracion.getNombreNegocio())
                 .ifPresent(p -> {
-                    // Si quedó sin saldo y se filtran "solo con saldo", se muestra igual para ver el pago.
                     if (chkSoloSaldo.isSelected() && reservaServicio.obtener(codigo).getSaldo().signum() == 0) {
                         chkSoloSaldo.setSelected(false);
                     }

@@ -6,9 +6,6 @@ import canchapro.util.FormatoFecha;
 import canchapro.util.FormatoMoneda;
 import java.math.BigDecimal;
 
-/**
- * Texto del comprobante de pago (para mostrar e imprimir).
- */
 // POO - Responsabilidad: solo da formato al comprobante; no contiene reglas de negocio.
 public final class FormatoPago {
 

@@ -42,15 +42,6 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.time.Clock;
 
-/**
- * Construye y conecta los repositorios y servicios del sistema.
- * Se crea una sola vez en {@code main} y se pasa por constructor a las
- * pantallas, en lugar de usar variables globales.
- *
- * Flujo de arranque:
- * configuración → carpeta de datos → carga de archivos (en orden) →
- * bitácora de errores → servicios → datos iniciales → estados de reservas.
- */
 // POO - Relaciones (composición): crea y conecta todos los repositorios y servicios del sistema.
 // Cada servicio recibe por constructor los objetos que necesita (no se usan variables globales).
 public class ContextoAplicacion {
@@ -59,7 +50,6 @@ public class ContextoAplicacion {
     private final Configuracion configuracion;
     private final Path carpetaDatos;
     private final RegistroErroresCarga registroErrores = new RegistroErroresCarga();
-    /** Lee todos los archivos en orden; se conserva para poder recargarlos desde Configuración. */
     private final CargadorDatos cargador;
 
     private final UsuarioServicio usuarioServicio;
@@ -81,17 +71,11 @@ public class ContextoAplicacion {
         this(archivoConfiguracion, Clock.systemDefaultZone());
     }
 
-    /**
-     * @param reloj hora del sistema (las pruebas pueden fijarla)
-     */
     public ContextoAplicacion(Path archivoConfiguracion, Clock reloj) {
-        // 1. Configuración
         configuracionRepositorio = new ConfiguracionRepositorio(archivoConfiguracion);
         configuracion = configuracionRepositorio.cargar(registroErrores);
         carpetaDatos = resolverCarpetaDatos();
 
-        // 2. Repositorios. Cada uno recibe los repositorios de los que depende
-        //    y se cargan en ese mismo orden.
         UsuarioRepositorio usuarioRepositorio = new UsuarioRepositorio(carpetaDatos);
         ClienteRepositorio clienteRepositorio = new ClienteRepositorio(carpetaDatos);
         CanchaRepositorio canchaRepositorio = new CanchaRepositorio(carpetaDatos);
@@ -101,18 +85,19 @@ public class ContextoAplicacion {
                 canchaRepositorio, servicioAdicionalRepositorio, usuarioRepositorio);
         PagoRepositorio pagoRepositorio = new PagoRepositorio(carpetaDatos, reservaRepositorio::existe,
                 usuarioRepositorio);
-        // Los pagos se asocian a sus reservas cada vez que se lee cualquiera de los dos archivos.
         reservaRepositorio.setFuentePagos(pagoRepositorio::listar);
         pagoRepositorio.setAlCargar(reservaRepositorio::vincularPagos);
 
-        // Módulo Tienda: sus archivos se cargan siempre (aunque el módulo esté
-        // desactivado) para que los datos estén intactos al reactivarlo.
         ProductoRepositorio productoRepositorio = new ProductoRepositorio(carpetaDatos);
-        VentaRepositorio ventaRepositorio = new VentaRepositorio(carpetaDatos, clienteRepositorio, usuarioRepositorio);
+        VentaRepositorio ventaRepositorio = new VentaRepositorio(carpetaDatos, clienteRepositorio, usuarioRepositorio,
+                reservaRepositorio::existe);
         DetalleVentaRepositorio detalleVentaRepositorio = new DetalleVentaRepositorio(carpetaDatos,
                 ventaRepositorio::existe, productoRepositorio);
         ventaRepositorio.setFuenteDetalles(detalleVentaRepositorio::listar);
         detalleVentaRepositorio.setAlCargar(ventaRepositorio::vincularDetalles);
+        // POO - Relaciones: las ventas con factura unificada se asocian a su reserva al leer los archivos.
+        reservaRepositorio.setFuenteVentas(ventaRepositorio::listar);
+        ventaRepositorio.setAlCargar(reservaRepositorio::vincularVentas);
 
         cargador = new CargadorDatos(carpetaDatos);
         cargador.registrar(usuarioRepositorio);
@@ -128,7 +113,6 @@ public class ContextoAplicacion {
         cargador.cargarTodo(registroErrores);
         registroErrores.escribirLog(carpetaDatos);
 
-        // 3. Servicios
         usuarioServicio = new UsuarioServicio(usuarioRepositorio);
         loginServicio = new LoginServicio(usuarioRepositorio);
         clienteServicio = new ClienteServicio(clienteRepositorio);
@@ -141,29 +125,21 @@ public class ContextoAplicacion {
                 configuracion, reloj);
         pagoServicio = new PagoServicio(pagoRepositorio, reservaServicio, configuracion, reloj);
         dashboardServicio = new DashboardServicio(reservaServicio, pagoServicio, canchaServicio, reloj);
-        tiendaServicio = new TiendaServicio(productoRepositorio, ventaRepositorio, detalleVentaRepositorio, reloj);
+        tiendaServicio = new TiendaServicio(productoRepositorio, ventaRepositorio, detalleVentaRepositorio,
+                reservaServicio, reloj);
         reporteServicio = crearReportes(reloj);
         configuracionServicio = new ConfiguracionServicio(configuracion, configuracionRepositorio, carpetaDatos,
                 this::recargarDatos);
 
-        // 4. Datos iniciales del primer arranque
         administradorInicialCreado = usuarioServicio.asegurarAdministrador();
         canchaServicio.asegurarDatosIniciales();
         tarifaServicio.asegurarDatosIniciales();
         servicioAdicionalServicio.asegurarDatosIniciales();
         tiendaServicio.asegurarDatosIniciales();
 
-        // 5. Reservas que empezaron o terminaron mientras el programa estaba cerrado
         reservaServicio.actualizarEstadosAutomaticos();
     }
 
-    /**
-     * Vuelve a leer todos los archivos de datos (desde la pantalla de
-     * Configuración). Los servicios siguen siendo los mismos; solo se
-     * reemplazan los objetos en memoria.
-     *
-     * @return errores encontrados durante la lectura
-     */
     private RegistroErroresCarga recargarDatos() {
         RegistroErroresCarga registro = new RegistroErroresCarga();
         cargador.cargarTodo(registro);
@@ -172,10 +148,6 @@ public class ContextoAplicacion {
         return registro;
     }
 
-    /**
-     * Registra los 8 reportes obligatorios. Los reportes se exportan a la
-     * carpeta "reportes", junto a la carpeta de datos.
-     */
     private ReporteServicio crearReportes(Clock reloj) {
         Path carpetaReportes = carpetaDatos.toAbsolutePath().getParent().resolve("reportes");
         ReporteServicio servicio = new ReporteServicio(carpetaReportes, reloj);
@@ -187,7 +159,6 @@ public class ContextoAplicacion {
         servicio.registrar(new ReporteCanchaMasUtilizada(reservaServicio, canchaServicio));
         servicio.registrar(new ReporteHorariosMayorDemanda(reservaServicio));
         servicio.registrar(new ReporteClientesFrecuentes(reservaServicio));
-        // Solo aparece si el módulo Tienda está activo.
         servicio.registrar(new ReporteVentasTienda(tiendaServicio, configuracion));
         return servicio;
     }
@@ -263,7 +234,6 @@ public class ContextoAplicacion {
         return tiendaServicio;
     }
 
-    /** Errores encontrados al leer configuración y archivos de datos. */
     public RegistroErroresCarga getRegistroErrores() {
         return registroErrores;
     }

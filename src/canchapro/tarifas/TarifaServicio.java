@@ -13,10 +13,6 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/**
- * Configuración de tarifas y cálculo automático del precio de uso de una
- * cancha. El precio nunca se escribe a mano: siempre sale de aquí.
- */
 // POO - Responsabilidad: es la única clase que calcula precios; ninguna pantalla los escribe a mano.
 public class TarifaServicio {
 
@@ -31,11 +27,6 @@ public class TarifaServicio {
         this.repositorio = repositorio;
     }
 
-    /**
-     * Primer arranque: crea las tarifas de referencia del enunciado.
-     *
-     * @return true si se crearon
-     */
     public boolean asegurarDatosIniciales() {
         if (!repositorio.estaVacio()) {
             return false;
@@ -50,15 +41,6 @@ public class TarifaServicio {
         return true;
     }
 
-    // --- Cálculo del precio ---
-
-    /**
-     * Tarifa que se cobra en una fecha y hora para un tipo de cancha.
-     * Una tarifa específica del tipo de cancha tiene prioridad sobre la
-     * tarifa general (que aplica a todos los tipos).
-     *
-     * @throws ReglaNegocioException si no hay ninguna tarifa activa configurada
-     */
     public Tarifa buscarTarifa(LocalDate fecha, LocalTime hora, TipoCancha tipoCancha) {
         Tarifa general = null;
         // POO - Colecciones: recorrido secuencial del arreglo de tarifas.
@@ -81,13 +63,6 @@ public class TarifaServicio {
         return general;
     }
 
-    /**
-     * Calcula el precio de usar una cancha durante el período indicado.
-     * Si el período cruza varias franjas, se divide en tramos y cada uno se
-     * cobra con su tarifa (nivel avanzado del enunciado).
-     *
-     * Ejemplo: lunes 16:00-18:00 → 60 min × Q150 + 60 min × Q225 = Q375.00
-     */
     public DetallePrecio calcular(LocalDate fecha, LocalTime inicio, Duration duracion, TipoCancha tipoCancha) {
         if (fecha == null || inicio == null || duracion == null || tipoCancha == null) {
             throw new DatosInvalidosException("Indique fecha, hora de inicio, duración y tipo de cancha.");
@@ -101,15 +76,6 @@ public class TarifaServicio {
         return calcular(fecha, inicio, inicio.plus(duracion), tipoCancha);
     }
 
-    /**
-     * Calcula el precio de [inicio, fin). Las horas deben estar en bloques
-     * de 30 minutos, igual que las franjas tarifarias.
-     *
-     * El período se recorre en bloques de 30 minutos; los bloques
-     * consecutivos cobrados con la misma tarifa se agrupan en un tramo.
-     * Así se respetan tanto los cambios de franja como las tarifas
-     * específicas que inician a mitad de una franja general.
-     */
     public DetallePrecio calcular(LocalDate fecha, LocalTime inicio, LocalTime fin, TipoCancha tipoCancha) {
         if (!inicio.isBefore(fin)) {
             throw new DatosInvalidosException("La hora final debe ser posterior a la hora de inicio.");
@@ -118,7 +84,6 @@ public class TarifaServicio {
             throw new DatosInvalidosException("Las horas deben ser en punto o y media.");
         }
 
-        // Como máximo hay un tramo por bloque de 30 minutos; luego se recorta al tamaño real.
         int bloques = (int) (Duration.between(inicio, fin).toMinutes() / Tarifa.MINUTOS_BLOQUE);
         TramoTarifa[] tramos = new TramoTarifa[bloques];
         int cantidad = 0;
@@ -153,9 +118,6 @@ public class TarifaServicio {
         return new TramoTarifa(desde, hasta, minutos, tarifa.getPrecioHora(), subtotal);
     }
 
-    // --- Administración de tarifas ---
-
-    /** Ordenadas por tipo de día, alcance (generales primero) y hora. */
     public Tarifa[] listar() {
         Tarifa[] tarifas = repositorio.listar();
         Arrays.sort(tarifas, Comparator.comparing(Tarifa::getTipoDia)
@@ -169,9 +131,6 @@ public class TarifaServicio {
                 .orElseThrow(() -> new EntidadNoEncontradaException("No existe la tarifa " + codigo));
     }
 
-    /**
-     * @param tipoCancha null para que aplique a todos los tipos de cancha
-     */
     public Tarifa registrar(TipoDia tipoDia, LocalTime desde, LocalTime hasta, BigDecimal precioHora,
             TipoCancha tipoCancha) {
         String codigo = GeneradorCodigo.siguiente(PREFIJO_CODIGO, 3, repositorio.codigos());
@@ -185,7 +144,6 @@ public class TarifaServicio {
     public Tarifa actualizar(String codigo, TipoDia tipoDia, LocalTime desde, LocalTime hasta,
             BigDecimal precioHora, TipoCancha tipoCancha) {
         Tarifa tarifa = obtener(codigo);
-        // Se valida con una copia para no modificar la tarifa si hay traslape.
         Tarifa propuesta = new Tarifa(codigo, tipoDia, desde, hasta, precioHora, tipoCancha, tarifa.isActiva());
         validarSinTraslape(propuesta);
         tarifa.actualizarDatos(tipoDia, desde, hasta, precioHora, tipoCancha);
@@ -194,10 +152,6 @@ public class TarifaServicio {
         return tarifa;
     }
 
-    /**
-     * Activa o desactiva una tarifa. Una tarifa inactiva no se usa para
-     * calcular precios; al reactivarla se vuelve a validar que no choque.
-     */
     public void cambiarEstado(String codigo, boolean activa) {
         Tarifa tarifa = obtener(codigo);
         if (tarifa.isActiva() == activa) {
@@ -211,10 +165,6 @@ public class TarifaServicio {
         repositorio.guardar();
     }
 
-    /**
-     * Entre las tarifas activas del mismo tipo de día y alcance, las franjas
-     * no pueden traslaparse; si no, el precio sería ambiguo.
-     */
     private void validarSinTraslape(Tarifa tarifa) {
         for (Tarifa otra : repositorio.listar()) {
             if (otra.isActiva() && !otra.getCodigo().equals(tarifa.getCodigo()) && tarifa.seTraslapaCon(otra)) {

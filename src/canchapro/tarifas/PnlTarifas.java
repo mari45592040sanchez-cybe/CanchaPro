@@ -16,9 +16,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
 
-/**
- * Configuración de tarifas por franja horaria y simulador de precio.
- */
 // POO - Herencia: la pantalla extiende JPanel de Swing.
 public class PnlTarifas extends javax.swing.JPanel {
 
@@ -26,7 +23,6 @@ public class PnlTarifas extends javax.swing.JPanel {
     private final TarifaServicio servicio;
     private final TarifaTableModel modeloTabla = new TarifaTableModel();
     private final TramoTableModel modeloTramos = new TramoTableModel();
-    /** Código de la tarifa en edición; null cuando se registra una nueva. */
     private String codigoSeleccionado;
 
     public PnlTarifas(TarifaServicio servicio) {
@@ -136,7 +132,6 @@ public class PnlTarifas extends javax.swing.JPanel {
         }
     }
 
-    /** Muestra cómo se cobraría una reserva con la configuración actual. */
     private void calcularSimulacion() {
         try {
             DetallePrecio detalle = servicio.calcular(SelectorFecha.obtener(spnFechaSim),

@@ -11,10 +11,6 @@ import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/**
- * Reporte de la tienda: productos más vendidos y total de ventas del
- * período. Solo aparece en la lista si el módulo Tienda está activo.
- */
 // POO - Polimorfismo (interfaz): implementa Reporte, así aparece en la pantalla de Reportes sin que
 // el módulo Reportes dependa de la Tienda. Sobrescribe estaDisponible() según la configuración.
 public class ReporteVentasTienda implements Reporte {
@@ -47,7 +43,6 @@ public class ReporteVentasTienda implements Reporte {
         return configuracion.isModuloTienda();
     }
 
-    /** Acumulado de un producto. */
     // POO - Encapsulamiento: clase privada que solo usa este reporte. POO - Relaciones: TIENE un Producto.
     private static final class Acumulado {
 

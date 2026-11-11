@@ -40,10 +40,6 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 
-/**
- * Ventana principal: menú lateral con los módulos permitidos para el
- * usuario y un panel central donde se muestra el módulo seleccionado.
- */
 // POO - Herencia: la ventana principal extiende JFrame de Swing.
 public class FrmPrincipal extends javax.swing.JFrame {
 
@@ -51,7 +47,6 @@ public class FrmPrincipal extends javax.swing.JFrame {
     private static final Color COLOR_SELECCIONADO = new Color(22, 101, 52);
     private static final Color COLOR_TEXTO_SECCION = new Color(156, 163, 175);
     private static final String TARJETA_SIN_MODULOS = "SIN_MODULOS";
-    /** Cada minuto se actualizan los estados de las reservas según la hora. */
     private static final int INTERVALO_ESTADOS_MS = 60_000;
 
     // POO - Relaciones: la ventana usa el contexto (servicios) y la sesión del usuario conectado.
@@ -64,7 +59,6 @@ public class FrmPrincipal extends javax.swing.JFrame {
     private final JButton[] botones = new JButton[Modulo.values().length];
     private final Timer temporizadorEstados;
     private Modulo moduloActual;
-    /** Oyentes registrados en Configuración (patrón Observador). */
     private final Runnable oyenteCambios = this::configuracionCambiada;
     private final Runnable oyenteRecarga = this::datosRecargados;
 
@@ -86,20 +80,13 @@ public class FrmPrincipal extends javax.swing.JFrame {
         temporizadorEstados.start();
     }
 
-    /**
-     * Pasa a EN_CURSO / FINALIZADA las reservas según la hora y, si hubo
-     * cambios, refresca la pantalla visible.
-     */
     private void actualizarEstadosReservas() {
         try {
             boolean cambiaron = contexto.getReservaServicio().actualizarEstadosAutomaticos() > 0;
-            // El inicio se refresca cada minuto (ingresos, reservas en curso);
-            // las demás pantallas solo si cambió el estado de alguna reserva.
             if (cambiaron || moduloActual == Modulo.DASHBOARD) {
                 refrescarModuloActual();
             }
         } catch (RuntimeException e) {
-            // Por ejemplo, el archivo está bloqueado: se reintentará en el próximo minuto.
             System.err.println("No se pudieron actualizar los estados de las reservas: " + e.getMessage());
         }
     }
@@ -116,11 +103,6 @@ public class FrmPrincipal extends javax.swing.JFrame {
         lblTitulo.setText("CanchaPro  |  " + negocio);
     }
 
-    /**
-     * La configuración cambió: puede aparecer o desaparecer la Tienda, o
-     * cambiar el nombre. El inicio y los reportes se vuelven a crear porque
-     * muestran (o no) información de la Tienda.
-     */
     private void configuracionCambiada() {
         actualizarTitulo();
         descartarPanel(Modulo.DASHBOARD);
@@ -138,10 +120,6 @@ public class FrmPrincipal extends javax.swing.JFrame {
         }
     }
 
-    /**
-     * Se volvieron a leer los archivos: las pantallas abiertas tienen objetos
-     * viejos, así que se descartan y se crean de nuevo al mostrarlas.
-     */
     private void datosRecargados() {
         Modulo actual = moduloActual;
         Arrays.fill(paneles, null);
@@ -158,19 +136,11 @@ public class FrmPrincipal extends javax.swing.JFrame {
         super.dispose();
     }
 
-    /**
-     * Un módulo se muestra si el usuario tiene permiso y además el módulo
-     * está habilitado en la configuración (por ejemplo, la Tienda).
-     */
     private boolean esVisible(Modulo modulo) {
         // POO - Polimorfismo: puedeAcceder() responde distinto si el usuario es Administrador o Empleado.
         return sesion.puedeAcceder(modulo) && contexto.getConfiguracion().estaHabilitado(modulo);
     }
 
-    /**
-     * Crea un botón por cada módulo visible para el usuario y muestra el
-     * módulo preferido (si sigue visible) o el primero de la lista.
-     */
     private void construirMenu(Modulo preferido) {
         pnlMenu.removeAll();
         Arrays.fill(botones, null);
@@ -207,10 +177,6 @@ public class FrmPrincipal extends javax.swing.JFrame {
         }
     }
 
-    /**
-     * Muestra el panel del módulo. Los paneles se crean la primera vez que
-     * se abren y luego se reutilizan.
-     */
     public void mostrarModulo(Modulo modulo) {
         if (!esVisible(modulo)) {
             return;
@@ -221,7 +187,6 @@ public class FrmPrincipal extends javax.swing.JFrame {
             pnlContenido.add(panel, modulo.name());
         // POO - Polimorfismo (interfaz): cualquier pantalla que implemente Refrescable se actualiza igual.
         } else if (modulo != moduloActual && paneles[modulo.ordinal()] instanceof Refrescable refrescable) {
-            // Los datos pudieron cambiar en otro módulo.
             refrescable.refrescar();
         }
         moduloActual = modulo;
@@ -263,7 +228,6 @@ public class FrmPrincipal extends javax.swing.JFrame {
         };
     }
 
-    /** Tarjetas de la Tienda para el inicio (solo si el módulo está activo y permitido). */
     private Indicador[] indicadoresTienda() {
         if (!esVisible(Modulo.TIENDA)) {
             return new Indicador[0];
@@ -275,10 +239,6 @@ public class FrmPrincipal extends javax.swing.JFrame {
                         () -> String.valueOf(tienda.productosConStockBajo().length))};
     }
 
-    /**
-     * Navega a un módulo desde un acceso rápido. Para Reservas abre
-     * directamente la pestaña "Nueva reserva".
-     */
     private void irA(Modulo modulo) {
         mostrarModulo(modulo);
         if (modulo == Modulo.RESERVAS && paneles[modulo.ordinal()] instanceof PnlModuloReservas reservas) {
@@ -286,7 +246,6 @@ public class FrmPrincipal extends javax.swing.JFrame {
         }
     }
 
-    /** Disponibilidad con el botón "Reservar" si el usuario puede usar Reservas. */
     private PnlDisponibilidad crearPanelDisponibilidad() {
         PnlDisponibilidad panel = new PnlDisponibilidad(contexto.getDisponibilidadServicio());
         if (esVisible(Modulo.RESERVAS)) {
@@ -298,7 +257,6 @@ public class FrmPrincipal extends javax.swing.JFrame {
         return panel;
     }
 
-    /** Canchas, avisando las reservas futuras afectadas al ponerla en mantenimiento. */
     private PnlCanchas crearPanelCanchas() {
         PnlCanchas panel = new PnlCanchas(contexto.getCanchaServicio());
         panel.setReservasAfectadas(codigoCancha -> contexto.getReservaServicio()

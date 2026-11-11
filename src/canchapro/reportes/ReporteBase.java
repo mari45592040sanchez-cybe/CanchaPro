@@ -10,10 +10,6 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.Arrays;
 
-/**
- * Funciones comunes a todos los reportes: obtener las reservas que cumplen
- * el filtro y dar formato a montos y horas.
- */
 // POO - Herencia / Reutilización: clase abstracta que heredan los 8 reportes; las funciones comunes
 // (filtrar reservas, sumar, dar formato) se escriben una sola vez.
 // POO - Polimorfismo: implementa Reporte; cada subclase define getNombre(), filtrosAplicables() y generar().
@@ -26,10 +22,6 @@ public abstract class ReporteBase implements Reporte {
         this.reservaServicio = reservaServicio;
     }
 
-    /**
-     * Reservas que cumplen el filtro. Si no se filtra por estado, se excluyen
-     * las canceladas (no ocuparon la cancha ni generan ingresos).
-     */
     protected Reserva[] reservas(FiltroReporte f) {
         Reserva[] todas = todasLasReservas(f);
         Reserva[] resultado = new Reserva[todas.length];
@@ -56,13 +48,11 @@ public abstract class ReporteBase implements Reporte {
         return Arrays.copyOf(resultado, cantidad);
     }
 
-    /** Reservas que cumplen el filtro, incluidas las canceladas. */
     protected Reserva[] todasLasReservas(FiltroReporte f) {
         return reservaServicio.buscar(new FiltroReservas(f.desde(), f.hasta(), f.codigoCancha(), f.estado(),
                 f.textoCliente()));
     }
 
-    /** "01/10/2026 al 31/10/2026" */
     protected static String periodo(FiltroReporte f) {
         if (f.desde() == null || f.hasta() == null) {
             return "Todas las fechas";
@@ -96,7 +86,6 @@ public abstract class ReporteBase implements Reporte {
         return minutos;
     }
 
-    /** Porcentaje con un decimal: 12.5 % */
     protected static String porcentaje(double parte, double total) {
         return total == 0 ? "0 %" : String.format("%.1f %%", parte * 100.0 / total);
     }

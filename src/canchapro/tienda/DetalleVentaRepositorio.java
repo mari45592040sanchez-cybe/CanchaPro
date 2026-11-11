@@ -6,10 +6,6 @@ import canchapro.util.excepciones.EntidadNoEncontradaException;
 import java.nio.file.Path;
 import java.util.function.Predicate;
 
-/**
- * Líneas de venta guardadas en detalle_ventas.csv:
- * codigoVenta;linea;codigoProducto;cantidad;precioUnitario
- */
 // POO - Herencia / Reutilización: hereda de RepositorioCsv; aquí solo se define el formato de detalle_ventas.csv.
 // POO - Polimorfismo: los métodos con @Override implementan los métodos abstractos de RepositorioCsv.
 public class DetalleVentaRepositorio extends RepositorioCsv<DetalleVenta> {
@@ -26,7 +22,6 @@ public class DetalleVentaRepositorio extends RepositorioCsv<DetalleVenta> {
         this.productos = productos;
     }
 
-    /** Acción a ejecutar tras cada lectura (asociar las líneas a sus ventas). */
     public void setAlCargar(Runnable alCargar) {
         this.alCargar = alCargar;
     }
@@ -35,8 +30,6 @@ public class DetalleVentaRepositorio extends RepositorioCsv<DetalleVenta> {
     protected void despuesDeCargar() {
         alCargar.run();
     }
-
-    // --- Formato del archivo ---
 
     @Override
     protected String encabezado() {

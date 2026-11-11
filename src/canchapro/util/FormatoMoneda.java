@@ -6,9 +6,6 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-/**
- * Formato de montos en quetzales: Q 1,250.00
- */
 public final class FormatoMoneda {
 
     private static final DecimalFormatSymbols SIMBOLOS = DecimalFormatSymbols.getInstance(Locale.US);

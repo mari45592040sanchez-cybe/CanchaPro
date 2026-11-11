@@ -2,9 +2,6 @@ package canchapro.canchas;
 
 import javax.swing.table.AbstractTableModel;
 
-/**
- * Modelo de la tabla de canchas.
- */
 // POO - Herencia: extiende AbstractTableModel de Swing.
 // POO - Polimorfismo: la JTable llama a getRowCount(), getValueAt()... sin saber que es un modelo de canchas.
 public class CanchaTableModel extends AbstractTableModel {

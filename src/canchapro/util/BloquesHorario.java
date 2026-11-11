@@ -3,11 +3,6 @@ package canchapro.util;
 import java.time.Duration;
 import java.time.LocalTime;
 
-/**
- * Las horas del sistema se manejan en bloques de 30 minutos (08:00, 08:30…)
- * y las reservas duran de 1 a 4 horas. Esta clase centraliza esas reglas
- * para que todas las pantallas ofrezcan las mismas opciones.
- */
 // POO - Reutilización: las pantallas de Canchas, Tarifas, Disponibilidad y Reservas usan las mismas horas.
 public final class BloquesHorario {
 
@@ -19,12 +14,10 @@ public final class BloquesHorario {
     private BloquesHorario() {
     }
 
-    /** 00:00, 00:30, …, 23:30 */
     public static LocalTime[] horasDelDia() {
         return horasEntre(LocalTime.MIDNIGHT, ULTIMO_BLOQUE);
     }
 
-    /** Horas de 30 en 30 minutos entre desde y hasta (ambas incluidas). */
     // POO - Colecciones: se calcula el tamaño exacto y se llena un arreglo de LocalTime.
     public static LocalTime[] horasEntre(LocalTime desde, LocalTime hasta) {
         if (desde.isAfter(hasta)) {
@@ -40,7 +33,6 @@ public final class BloquesHorario {
         return horas;
     }
 
-    /** Duraciones permitidas para una reserva: 1 h, 1 h 30 min, …, 4 h. */
     public static OpcionDuracion[] duracionesPermitidas() {
         int cantidad = (int) ((DURACION_MAXIMA.toMinutes() - DURACION_MINIMA.toMinutes()) / MINUTOS_BLOQUE) + 1;
         OpcionDuracion[] opciones = new OpcionDuracion[cantidad];
@@ -52,7 +44,6 @@ public final class BloquesHorario {
         return opciones;
     }
 
-    /** "1 h", "1 h 30 min", "45 min" */
     public static String describir(Duration duracion) {
         long horas = duracion.toHours();
         int minutos = duracion.toMinutesPart();
@@ -62,11 +53,6 @@ public final class BloquesHorario {
         return minutos == 0 ? horas + " h" : horas + " h " + minutos + " min";
     }
 
-    /**
-     * Opción de duración para listas desplegables.
-     *
-     * @param duracion duración representada
-     */
     public record OpcionDuracion(Duration duracion) {
 
         @Override

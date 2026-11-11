@@ -8,15 +8,9 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.function.Function;
 
-/**
- * Vista de un día: filas = bloques de 30 minutos, columnas = canchas.
- * Cada celda indica si el bloque está libre, ocupado, cerrado, etc.
- * No depende de Swing: la pantalla solo dibuja lo que aquí se calcula.
- */
 // POO - Responsabilidad: calcula la grilla; la pantalla solo la dibuja.
 public class GrillaOcupacion {
 
-    /** Estado de un bloque de 30 minutos en una cancha. */
     public enum TipoCelda {
         LIBRE("Libre"),
         OCUPADA("Ocupada"),
@@ -36,11 +30,6 @@ public class GrillaOcupacion {
         }
     }
 
-    /**
-     * @param tipo       estado del bloque
-     * @param texto      texto a mostrar (código de reserva si está ocupada)
-     * @param solicitada true si el bloque forma parte del horario consultado
-     */
     public record Celda(TipoCelda tipo, String texto, boolean solicitada) {
     }
 
@@ -91,7 +80,6 @@ public class GrillaOcupacion {
         return new Celda(TipoCelda.LIBRE, "", solicitada);
     }
 
-    /** Desde la apertura más temprana hasta el cierre más tardío de las canchas mostradas. */
     private static LocalTime[] calcularHoras(Cancha[] canchas) {
         if (canchas.length == 0) {
             return new LocalTime[0];
@@ -106,7 +94,6 @@ public class GrillaOcupacion {
                 hasta = c.getHoraCierre();
             }
         }
-        // Bloques de 30 minutos en [desde, hasta)
         return BloquesHorario.horasEntre(desde, hasta.minusMinutes(BloquesHorario.MINUTOS_BLOQUE));
     }
 

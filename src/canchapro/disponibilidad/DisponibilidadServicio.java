@@ -21,17 +21,6 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * Motor de disponibilidad: dado fecha, hora, duración y tipo de cancha,
- * determina automáticamente qué canchas se pueden reservar. El operador
- * nunca decide la disponibilidad a mano.
- *
- * Una cancha está disponible solo si:
- * 1. su estado es DISPONIBLE (no en mantenimiento ni inactiva),
- * 2. el horario solicitado cabe dentro de su horario de atención,
- * 3. no se traslapa con ninguna ocupación existente (reserva no cancelada),
- * 4. existe tarifa para calcular el precio.
- */
 // POO - Responsabilidad: es el único que decide si una cancha está disponible; el operador nunca lo decide.
 public class DisponibilidadServicio {
 
@@ -46,9 +35,6 @@ public class DisponibilidadServicio {
         this(canchaServicio, tarifaServicio, fuenteOcupacion, Clock.systemDefaultZone());
     }
 
-    /**
-     * @param reloj permite fijar la hora actual en las pruebas
-     */
     public DisponibilidadServicio(CanchaServicio canchaServicio, TarifaServicio tarifaServicio,
             FuenteOcupacion fuenteOcupacion, Clock reloj) {
         this.canchaServicio = canchaServicio;
@@ -57,13 +43,6 @@ public class DisponibilidadServicio {
         this.reloj = reloj;
     }
 
-    // --- Validación de la solicitud ---
-
-    /**
-     * Reglas generales de cualquier reserva:
-     * no en el pasado, duración de 1 a 4 horas en bloques de 30 minutos,
-     * hora de inicio en punto o y media y sin pasar de la medianoche.
-     */
     public void validarSolicitud(SolicitudDisponibilidad s) {
         if (s == null || s.fecha() == null || s.horaInicio() == null || s.duracion() == null) {
             throw new DatosInvalidosException("Indique fecha, hora de inicio y duración.");
@@ -86,12 +65,6 @@ public class DisponibilidadServicio {
         }
     }
 
-    // --- Consultas ---
-
-    /**
-     * Evalúa todas las canchas del tipo solicitado (o todas si no se indica
-     * tipo) e indica cuáles están disponibles y por qué no lo están las demás.
-     */
     public ResultadoDisponibilidad[] consultar(SolicitudDisponibilidad solicitud) {
         validarSolicitud(solicitud);
         Cancha[] canchas = canchaServicio.listarPorTipo(solicitud.tipoCancha());
@@ -107,14 +80,12 @@ public class DisponibilidadServicio {
             try {
                 resultados[i] = ResultadoDisponibilidad.disponible(cancha, calcularPrecio(cancha, solicitud));
             } catch (CanchaProException e) {
-                // Sin tarifa configurada: no se puede ofrecer porque no se puede cobrar.
                 resultados[i] = ResultadoDisponibilidad.noDisponible(cancha, e.getMessage());
             }
         }
         return resultados;
     }
 
-    /** Solo las canchas que se pueden reservar. */
     public ResultadoDisponibilidad[] listarDisponibles(SolicitudDisponibilidad solicitud) {
         ResultadoDisponibilidad[] todos = consultar(solicitud);
         ResultadoDisponibilidad[] disponibles = new ResultadoDisponibilidad[todos.length];
@@ -128,15 +99,6 @@ public class DisponibilidadServicio {
         return Arrays.copyOf(disponibles, cantidad);
     }
 
-    /**
-     * Verificación final antes de guardar una reserva (se repite al
-     * confirmar, por si la disponibilidad cambió desde la consulta).
-     *
-     * @param referenciaExcluir código de una ocupación a ignorar (la propia
-     *                          reserva cuando se modifica), o null
-     * @throws ConflictoHorarioException si choca con otra ocupación
-     * @throws ReglaNegocioException     si la cancha no está disponible o está cerrada
-     */
     public void verificarDisponible(Cancha cancha, SolicitudDisponibilidad solicitud, String referenciaExcluir) {
         validarSolicitud(solicitud);
         Optional<Impedimento> impedimento = motivoNoDisponible(cancha, solicitud, referenciaExcluir);
@@ -152,12 +114,6 @@ public class DisponibilidadServicio {
         return tarifaServicio.calcular(solicitud.fecha(), solicitud.horaInicio(), solicitud.duracion(), cancha.getTipo());
     }
 
-    /**
-     * Grilla de ocupación de un día por cancha y bloque de 30 minutos.
-     *
-     * @param tipo     tipo de cancha a mostrar, o null para todas
-     * @param resaltar solicitud cuyo horario se resalta en la grilla, o null
-     */
     public GrillaOcupacion ocupacionDelDia(LocalDate fecha, TipoCancha tipo, SolicitudDisponibilidad resaltar) {
         Cancha[] delTipo = canchaServicio.listarPorTipo(tipo);
         Cancha[] canchas = new Cancha[delTipo.length];
@@ -172,9 +128,6 @@ public class DisponibilidadServicio {
                 c -> fuenteOcupacion.ocupaciones(c.getCodigo(), fecha), ahora(), resaltar);
     }
 
-    // --- Reglas internas ---
-
-    /** Razón por la que una cancha no se puede reservar. */
     private record Impedimento(String mensaje, boolean esConflicto) {
     }
 
@@ -200,7 +153,6 @@ public class DisponibilidadServicio {
         return LocalDateTime.now(reloj).withSecond(0).withNano(0);
     }
 
-    /** Hora actual según el reloj del servicio (útil para las pantallas). */
     public LocalTime horaActual() {
         return ahora().toLocalTime();
     }

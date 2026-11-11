@@ -9,11 +9,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-/**
- * Precio por hora de una franja horaria para un tipo de día.
- * Si {@code tipoCancha} es null, la tarifa aplica a todos los tipos de
- * cancha; si tiene un tipo, es una tarifa específica que tiene prioridad.
- */
 // POO - Polimorfismo (interfaz): implementa Identificable para poder guardarse en un RepositorioCsv.
 // POO - Encapsulamiento: atributos privados; actualizarDatos() valida todo antes de asignar.
 public class Tarifa implements Identificable {
@@ -36,9 +31,6 @@ public class Tarifa implements Identificable {
         this.activa = activa;
     }
 
-    /**
-     * Valida todos los datos y solo entonces los asigna.
-     */
     public final void actualizarDatos(TipoDia tipoDia, LocalTime horaDesde, LocalTime horaHasta,
             BigDecimal precioHora, TipoCancha tipoCancha) {
         if (tipoDia == null) {
@@ -71,11 +63,6 @@ public class Tarifa implements Identificable {
         return Validador.precio(precio, PRECIO_MAXIMO, "El precio por hora");
     }
 
-    /**
-     * Indica si esta tarifa (activa) cubre el bloque que inicia a la hora
-     * indicada. La franja incluye la hora inicial y excluye la final:
-     * [horaDesde, horaHasta).
-     */
     public boolean aplica(LocalDate fecha, LocalTime hora, TipoCancha tipo) {
         return activa
                 && tipoDia == TipoDia.de(fecha)
@@ -84,7 +71,6 @@ public class Tarifa implements Identificable {
                 && hora.isBefore(horaHasta);
     }
 
-    /** Dos tarifas chocan si son del mismo tipo de día y alcance, y sus franjas se traslapan. */
     public boolean seTraslapaCon(Tarifa otra) {
         return tipoDia == otra.tipoDia
                 && tipoCancha == otra.tipoCancha
@@ -117,7 +103,6 @@ public class Tarifa implements Identificable {
         return precioHora;
     }
 
-    /** null = aplica a todos los tipos de cancha. */
     public TipoCancha getTipoCancha() {
         return tipoCancha;
     }
@@ -134,7 +119,6 @@ public class Tarifa implements Identificable {
         this.activa = activa;
     }
 
-    /** "Lunes a viernes 08:00-17:00 (Todos los tipos)" */
     public String getDescripcion() {
         return tipoDia + " " + horaDesde + "-" + horaHasta + " (" + getAlcance() + ")";
     }

@@ -4,9 +4,6 @@ import canchapro.util.Identificable;
 import canchapro.util.Validador;
 import canchapro.util.excepciones.DatosInvalidosException;
 
-/**
- * Datos comunes de cualquier persona del sistema (clientes y usuarios).
- */
 // POO - Herencia: clase base (abstracta) de Cliente y Usuario; contiene los datos comunes de una persona.
 // POO - Polimorfismo: implementa la interfaz Identificable (toda entidad tiene un código).
 public abstract class Persona implements Identificable {
@@ -24,23 +21,15 @@ public abstract class Persona implements Identificable {
         setCorreo(correo);
     }
 
-    // --- Validaciones reutilizables (se usan antes de modificar un objeto) ---
-
     // POO - Reutilización: validaciones estáticas que usan Cliente, Usuario y los servicios.
     public static String validarNombre(String nombre) {
         return Validador.texto(nombre, 3, 80, "El nombre");
     }
 
-    /** Teléfono opcional; si se ingresa debe tener 8 dígitos. */
     public static String validarTelefono(String telefono) {
         return validarTelefono(telefono, false);
     }
 
-    /**
-     * Valida el teléfono.
-     *
-     * @param obligatorio si es true, el teléfono no puede quedar vacío
-     */
     public static String validarTelefono(String telefono, boolean obligatorio) {
         String limpio = obligatorio
                 ? Validador.requerido(telefono, "El teléfono")
@@ -51,7 +40,6 @@ public abstract class Persona implements Identificable {
         return limpio;
     }
 
-    /** Correo opcional; si se ingresa debe tener un formato válido. */
     public static String validarCorreo(String correo) {
         String limpio = Validador.opcional(correo);
         if (!limpio.isEmpty() && !Validador.correoValido(limpio)) {
@@ -85,11 +73,6 @@ public abstract class Persona implements Identificable {
         this.telefono = validarTelefono(telefono, telefonoObligatorio());
     }
 
-    /**
-     * Cada tipo de persona decide si el teléfono es obligatorio.
-     * Por defecto es opcional; {@code Cliente} lo exige porque es el dato
-     * principal para contactarlo y para evitar clientes duplicados.
-     */
     // POO - Polimorfismo: las subclases pueden sobrescribirlo (Cliente devuelve true).
     protected boolean telefonoObligatorio() {
         return false;

@@ -4,10 +4,6 @@ import canchapro.usuarios.Modulo;
 import canchapro.util.Validador;
 import canchapro.util.excepciones.DatosInvalidosException;
 
-/**
- * Parámetros del sistema que se pueden cambiar sin recompilar
- * (se guardan en config/canchapro.properties).
- */
 public class Configuracion {
 
     public static final boolean MODULO_TIENDA_DEFECTO = true;
@@ -21,11 +17,6 @@ public class Configuracion {
     private int anticipoMinimoPorcentaje = ANTICIPO_MINIMO_DEFECTO;
     private String nombreNegocio = NOMBRE_NEGOCIO_DEFECTO;
 
-    /**
-     * Indica si un módulo está disponible en esta instalación.
-     * Por ahora solo la Tienda/Cafetería es opcional; el resto del sistema
-     * (el núcleo de reservas) siempre está habilitado.
-     */
     public boolean estaHabilitado(Modulo modulo) {
         return modulo != Modulo.TIENDA || moduloTienda;
     }
@@ -46,7 +37,6 @@ public class Configuracion {
         this.rutaDatos = Validador.requerido(rutaDatos, "La ruta de datos");
     }
 
-    /** Porcentaje del total que debe pagarse para que una reserva quede CONFIRMADA. */
     public int getAnticipoMinimoPorcentaje() {
         return anticipoMinimoPorcentaje;
     }

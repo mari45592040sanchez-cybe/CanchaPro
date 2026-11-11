@@ -5,11 +5,6 @@ import canchapro.util.excepciones.CanchaProException;
 import java.util.Arrays;
 import javax.swing.JOptionPane;
 
-/**
- * Diálogo para cambiar la contraseña del usuario.
- * Si es obligatorio (primer ingreso o contraseña restablecida), el usuario
- * no puede continuar al sistema sin cambiarla.
- */
 // POO - Herencia: extiende JDialog de Swing.
 public class DlgCambiarPassword extends javax.swing.JDialog {
 

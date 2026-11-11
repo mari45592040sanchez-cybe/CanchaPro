@@ -1,9 +1,5 @@
 package canchapro.canchas;
 
-/**
- * Estado operativo de una cancha. Solo una cancha DISPONIBLE puede
- * aparecer en la consulta de disponibilidad y recibir reservas.
- */
 // POO - Encapsulamiento: enumeración con atributo y comportamiento (permiteReservas).
 public enum EstadoCancha {
 

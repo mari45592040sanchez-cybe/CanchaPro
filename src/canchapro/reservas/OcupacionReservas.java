@@ -5,10 +5,6 @@ import canchapro.disponibilidad.Ocupacion;
 import java.time.LocalDate;
 import java.util.Arrays;
 
-/**
- * Entrega al motor de disponibilidad los horarios ocupados por reservas.
- * Las reservas CANCELADAS no ocupan la cancha.
- */
 // POO - Polimorfismo (interfaz): implementa FuenteOcupacion; el motor de disponibilidad la usa sin conocer las reservas.
 public class OcupacionReservas implements FuenteOcupacion {
 

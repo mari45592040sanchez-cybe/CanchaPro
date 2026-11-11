@@ -4,6 +4,7 @@ import canchapro.clientes.Cliente;
 import canchapro.pagos.MetodoPago;
 import canchapro.usuarios.Usuario;
 import canchapro.util.Identificable;
+import canchapro.util.excepciones.DatosInvalidosException;
 import canchapro.util.excepciones.ReglaNegocioException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -11,15 +12,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
 
-/**
- * Venta de la tienda con uno o varios productos. El cliente es opcional
- * (venta de mostrador). Una venta no se elimina: se anula.
- */
 // POO - Polimorfismo (interfaz): implementa Identificable para poder guardarse en un RepositorioCsv.
 // POO - Encapsulamiento: atributos privados; el estado solo cambia con anular().
 public class Venta implements Identificable {
 
-    /** Estados de una venta. */
+    // POO - Enumeración: estados de una venta.
     public enum Estado {
         REGISTRADA("Registrada"),
         ANULADA("Anulada");
@@ -45,15 +42,30 @@ public class Venta implements Identificable {
     private final MetodoPago metodoPago;
     private final Usuario usuario;
     private Estado estado;
+    // POO - Relaciones (asociación): en la factura unificada la venta conoce el código de la reserva
+    // a la que se cargó; en la factura individual este atributo queda en null.
+    private final String codigoReserva;
 
+    // POO - Constructor: valida que la venta quede completa según su tipo de factura.
     public Venta(String codigo, LocalDateTime fechaHora, Cliente cliente, MetodoPago metodoPago, Usuario usuario,
-            Estado estado) {
+            Estado estado, String codigoReserva) {
         this.codigo = Objects.requireNonNull(codigo);
         this.fechaHora = Objects.requireNonNull(fechaHora);
-        this.cliente = cliente;
-        this.metodoPago = Objects.requireNonNull(metodoPago, "Seleccione el método de pago");
         this.usuario = Objects.requireNonNull(usuario);
         this.estado = Objects.requireNonNull(estado);
+        this.codigoReserva = codigoReserva == null || codigoReserva.isBlank() ? null : codigoReserva.trim();
+        if (this.codigoReserva == null) {
+            if (metodoPago == null) {
+                throw new DatosInvalidosException("Seleccione el método de pago.");
+            }
+            this.metodoPago = metodoPago;
+        } else {
+            if (cliente == null) {
+                throw new DatosInvalidosException("La factura unificada necesita un cliente.");
+            }
+            this.metodoPago = null;
+        }
+        this.cliente = cliente;
     }
 
     public BigDecimal getTotal() {
@@ -72,7 +84,6 @@ public class Venta implements Identificable {
         return cantidad;
     }
 
-    /** Marca la venta como anulada. El inventario lo devuelve el servicio. */
     public void anular() {
         if (estado == Estado.ANULADA) {
             throw new ReglaNegocioException("La venta " + codigo + " ya está anulada.");
@@ -80,12 +91,24 @@ public class Venta implements Identificable {
         estado = Estado.ANULADA;
     }
 
-    /** Reemplaza las líneas al crear la venta o al reconstruirla desde archivo. */
     void reemplazarDetalles(DetalleVenta[] nuevos) {
         detalles = Arrays.copyOf(nuevos, nuevos.length);
         Arrays.sort(detalles, Comparator.comparingInt(DetalleVenta::getLinea));
     }
 
+    public boolean esUnificada() {
+        return codigoReserva != null;
+    }
+
+    public TipoFactura getTipoFactura() {
+        return esUnificada() ? TipoFactura.UNIFICADA : TipoFactura.INDIVIDUAL;
+    }
+
+    public String getDescripcionPago() {
+        return esUnificada() ? "Reserva " + codigoReserva : metodoPago.toString();
+    }
+
+    // POO - Polimorfismo: implementa getCodigo() de la interfaz Identificable.
     @Override
     public String getCodigo() {
         return codigo;
@@ -95,7 +118,6 @@ public class Venta implements Identificable {
         return fechaHora;
     }
 
-    /** null si fue una venta de mostrador sin cliente. */
     public Cliente getCliente() {
         return cliente;
     }
@@ -107,6 +129,10 @@ public class Venta implements Identificable {
 
     public MetodoPago getMetodoPago() {
         return metodoPago;
+    }
+
+    public String getCodigoReserva() {
+        return codigoReserva;
     }
 
     public Usuario getUsuario() {

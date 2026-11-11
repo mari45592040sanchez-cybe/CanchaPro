@@ -5,12 +5,6 @@ import java.awt.Window;
 import java.util.Optional;
 import javax.swing.JOptionPane;
 
-/**
- * Diálogo para buscar y seleccionar un cliente (o registrarlo si no existe).
- * Reutiliza {@link PnlClientes} en modo selección.
- *
- * Uso: {@code DlgBuscarCliente.seleccionar(ventana, clienteServicio).ifPresent(...)}
- */
 // POO - Herencia: extiende JDialog de Swing.
 public class DlgBuscarCliente extends javax.swing.JDialog {
 
@@ -32,11 +26,6 @@ public class DlgBuscarCliente extends javax.swing.JDialog {
         pnlClientes.enfocarBusqueda();
     }
 
-    /**
-     * Abre el diálogo y espera a que el usuario elija un cliente.
-     *
-     * @return el cliente elegido, o vacío si canceló
-     */
     public static Optional<Cliente> seleccionar(Window parent, ClienteServicio servicio) {
         DlgBuscarCliente dialogo = new DlgBuscarCliente(parent, servicio);
         dialogo.setVisible(true);

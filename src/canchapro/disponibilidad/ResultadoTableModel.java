@@ -3,9 +3,6 @@ package canchapro.disponibilidad;
 import canchapro.util.FormatoMoneda;
 import javax.swing.table.AbstractTableModel;
 
-/**
- * Resultado de una consulta de disponibilidad, una fila por cancha.
- */
 // POO - Herencia: extiende AbstractTableModel de Swing.
 // POO - Polimorfismo: la JTable llama a getRowCount(), getValueAt()... sin conocer la clase concreta.
 public class ResultadoTableModel extends AbstractTableModel {

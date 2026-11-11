@@ -4,14 +4,11 @@ import canchapro.util.FormatoFecha;
 import canchapro.util.FormatoMoneda;
 import javax.swing.table.AbstractTableModel;
 
-/**
- * Modelo de la tabla de ventas.
- */
 // POO - Herencia: extiende AbstractTableModel de Swing.
 // POO - Polimorfismo: la JTable llama a getRowCount(), getValueAt()... sin conocer la clase concreta.
 public class VentaTableModel extends AbstractTableModel {
 
-    private static final String[] COLUMNAS = {"Código", "Fecha y hora", "Cliente", "Artículos", "Total", "Método", "Estado"};
+    private static final String[] COLUMNAS = {"Código", "Fecha y hora", "Cliente", "Artículos", "Total", "Pago", "Estado"};
 
     // POO - Colecciones: arreglo de objetos Venta que se muestran en la tabla.
     private Venta[] ventas = new Venta[0];
@@ -53,7 +50,7 @@ public class VentaTableModel extends AbstractTableModel {
             case 2 -> v.getCliente() == null ? "(mostrador)" : v.getCliente().getNombre();
             case 3 -> v.getCantidadArticulos();
             case 4 -> FormatoMoneda.formatear(v.getTotal());
-            case 5 -> v.getMetodoPago().toString();
+            case 5 -> v.getDescripcionPago();
             case 6 -> v.getEstado().toString();
             default -> "";
         };

@@ -2,6 +2,8 @@ package canchapro.reservas;
 
 import canchapro.pagos.Pago;
 import canchapro.tarifas.TramoTarifa;
+import canchapro.tienda.DetalleVenta;
+import canchapro.tienda.Venta;
 import canchapro.util.BloquesHorario;
 import canchapro.util.FormatoFecha;
 import canchapro.util.FormatoMoneda;
@@ -10,10 +12,6 @@ import java.time.LocalDate;
 import java.time.format.TextStyle;
 import java.util.Locale;
 
-/**
- * Textos de resumen de reservas (para pantallas y comprobantes).
- * No contiene reglas de negocio: solo da formato a datos ya calculados.
- */
 // POO - Responsabilidad: solo da formato de texto; no contiene reglas de negocio.
 public final class FormatoReserva {
 
@@ -23,7 +21,6 @@ public final class FormatoReserva {
     private FormatoReserva() {
     }
 
-    /** Resumen previo a confirmar una reserva. */
     public static String resumen(ReservaBorrador b, int porcentajeAnticipo) {
         StringBuilder sb = new StringBuilder();
         sb.append(campo("Cliente", b.cliente().getDescripcion()));
@@ -43,7 +40,6 @@ public final class FormatoReserva {
         return sb.toString();
     }
 
-    /** Detalle completo de una reserva guardada. */
     public static String detalle(Reserva r) {
         StringBuilder sb = new StringBuilder();
         sb.append(r.getCodigo()).append("   Estado: ").append(r.getEstado().toString().toUpperCase()).append("\n\n");
@@ -56,6 +52,7 @@ public final class FormatoReserva {
         sb.append('\n');
         sb.append(importe("Uso de la cancha", r.getSubtotalCancha()));
         agregarServicios(sb, r.getServicios());
+        agregarProductosTienda(sb, r.getConsumos());
         sb.append(LINEA).append('\n');
         sb.append(importe("TOTAL", r.getTotal()));
 
@@ -92,6 +89,19 @@ public final class FormatoReserva {
         for (ReservaServicioItem i : servicios) {
             sb.append(importe("  " + i.servicio().getNombre() + " x" + i.cantidad()
                     + " (" + i.servicio().getTipoCobro().toString().toLowerCase() + ")", i.subtotal()));
+        }
+    }
+
+    // POO - Colecciones: recorre el arreglo de ventas de la tienda y, de cada una, su arreglo de líneas.
+    private static void agregarProductosTienda(StringBuilder sb, Venta[] consumos) {
+        if (consumos.length == 0) {
+            return;
+        }
+        sb.append("Productos de tienda\n");
+        for (Venta venta : consumos) {
+            for (DetalleVenta d : venta.getDetalles()) {
+                sb.append(importe("  " + d.getProducto().getNombre() + " x" + d.getCantidad(), d.getSubtotal()));
+            }
         }
     }
 

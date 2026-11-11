@@ -13,10 +13,6 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-/**
- * Lectura y escritura de archivos CSV separados por ';' en UTF-8.
- * La primera línea de cada archivo es el encabezado.
- */
 // POO - Responsabilidad / Reutilización: única clase que lee y escribe archivos;
 // todos los repositorios y la configuración la reutilizan.
 public final class ArchivoCsv {
@@ -28,10 +24,6 @@ public final class ArchivoCsv {
     private ArchivoCsv() {
     }
 
-    /**
-     * Lee el archivo completo. Si no existe, lo crea únicamente con el
-     * encabezado y devuelve un contenido vacío.
-     */
     public static ContenidoCsv leer(Path archivo, String encabezadoEsperado) {
         try {
             if (Files.notExists(archivo)) {
@@ -70,11 +62,6 @@ public final class ArchivoCsv {
         }
     }
 
-    /**
-     * Escritura segura: primero se escribe un archivo temporal y luego se
-     * reemplaza el original. Si el programa se interrumpe a mitad de la
-     * escritura, el archivo original queda intacto.
-     */
     public static void escribir(Path archivo, String encabezado, String[] lineas) {
         String[] contenido = new String[lineas.length + 1];
         contenido[0] = encabezado;
@@ -84,10 +71,6 @@ public final class ArchivoCsv {
         escribirLineas(archivo, contenido);
     }
 
-    /**
-     * Escritura segura de cualquier archivo de texto en UTF-8 (también se
-     * usa para el archivo de configuración).
-     */
     public static void escribirLineas(Path archivo, String[] contenido) {
         StringBuilder texto = new StringBuilder();
         for (String linea : contenido) {
@@ -110,12 +93,6 @@ public final class ArchivoCsv {
         }
     }
 
-    /**
-     * Copia el archivo a la carpeta de respaldos con fecha y hora en el
-     * nombre, por ejemplo: respaldos/usuarios_20261008_183000.csv
-     *
-     * @return ruta de la copia creada
-     */
     public static Path respaldar(Path archivo, Path carpetaRespaldos) {
         try {
             Files.createDirectories(carpetaRespaldos);
@@ -131,15 +108,10 @@ public final class ArchivoCsv {
         }
     }
 
-    /** Quita la marca BOM que agregan algunos editores (Excel, Bloc de notas). */
     private static String quitarBom(String texto) {
         return !texto.isEmpty() && texto.charAt(0) == BOM ? texto.substring(1) : texto;
     }
 
-    /**
-     * En Windows, un archivo abierto en Excel queda bloqueado y no se puede
-     * reemplazar; se explica eso al usuario en lugar del error técnico.
-     */
     private static String mensajeError(String accion, Path archivo, IOException e) {
         String nombre = archivo.getFileName().toString();
         if (e instanceof FileSystemException && !(e instanceof NoSuchFileException)) {

@@ -5,9 +5,6 @@ import canchapro.reservas.ReservaServicio;
 import canchapro.util.FormatoFecha;
 import java.math.BigDecimal;
 
-/**
- * Reservas no canceladas que todavía tienen saldo por cobrar.
- */
 // POO - Herencia: hereda de ReporteBase las funciones comunes de los reportes.
 // POO - Polimorfismo: sobrescribe getNombre(), filtrosAplicables() y generar().
 public class ReportePagosPendientes extends ReporteBase {

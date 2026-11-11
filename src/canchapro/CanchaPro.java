@@ -9,9 +9,6 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-/**
- * Punto de entrada de CanchaPro.
- */
 public class CanchaPro {
 
     private static final Path ARCHIVO_CONFIGURACION = Path.of("config", "canchapro.properties");
@@ -81,7 +78,6 @@ public class CanchaPro {
                 }
             }
         } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException e) {
-            // Se mantiene el aspecto por defecto de Swing.
         }
     }
 }

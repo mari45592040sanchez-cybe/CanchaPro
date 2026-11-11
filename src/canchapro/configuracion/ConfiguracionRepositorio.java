@@ -12,9 +12,6 @@ import java.nio.file.Path;
 import java.util.Properties;
 import java.util.function.Consumer;
 
-/**
- * Lee y guarda la configuración en un archivo .properties (UTF-8).
- */
 // POO - Responsabilidad: solo lee y guarda el archivo canchapro.properties.
 public class ConfiguracionRepositorio {
 
@@ -29,11 +26,6 @@ public class ConfiguracionRepositorio {
         this.archivo = archivo;
     }
 
-    /**
-     * Lee la configuración. Si el archivo no existe se crea con los valores
-     * por defecto; si falta alguna clave se agrega. Un valor inválido no
-     * detiene el sistema: se usa el valor por defecto y se registra el error.
-     */
     public Configuracion cargar(RegistroErroresCarga registro) {
         Configuracion configuracion = new Configuracion();
         if (Files.notExists(archivo)) {
@@ -87,11 +79,6 @@ public class ConfiguracionRepositorio {
         return archivo;
     }
 
-    /**
-     * Aplica el valor de una clave.
-     *
-     * @return true si la clave no existe en el archivo
-     */
     private boolean aplicar(Properties propiedades, String clave, RegistroErroresCarga registro,
             Consumer<String> asignar) {
         String valor = propiedades.getProperty(clave);
@@ -107,7 +94,6 @@ public class ConfiguracionRepositorio {
         return false;
     }
 
-    /** En archivos .properties la barra invertida es un carácter especial. */
     private static String escapar(String valor) {
         return valor.replace("\\", "\\\\");
     }

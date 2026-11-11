@@ -8,10 +8,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
-/**
- * Pantalla del administrador para registrar empleados (u otros
- * administradores) y elegir los módulos que cada empleado podrá ver.
- */
 // POO - Herencia: la pantalla extiende JPanel de Swing.
 public class PnlUsuarios extends javax.swing.JPanel {
 
@@ -23,7 +19,6 @@ public class PnlUsuarios extends javax.swing.JPanel {
     // POO - Colecciones: una casilla por módulo; la posición es modulo.ordinal()
     // (queda null en los módulos exclusivos del administrador, que no se asignan).
     private final JCheckBox[] casillasModulos = new JCheckBox[Modulo.values().length];
-    /** Código del usuario en edición; null cuando se registra uno nuevo. */
     private String codigoSeleccionado;
 
     public PnlUsuarios(UsuarioServicio servicio, Sesion sesion) {
@@ -118,7 +113,6 @@ public class PnlUsuarios extends javax.swing.JPanel {
         txtNombre.requestFocusInWindow();
     }
 
-    /** Los administradores ven todos los módulos, por eso no se eligen. */
     private void habilitarCasillas(boolean habilitar) {
         for (JCheckBox casilla : casillasModulos) {
             if (casilla != null) {
@@ -196,7 +190,6 @@ public class PnlUsuarios extends javax.swing.JPanel {
                     "Restablecer contraseña", JOptionPane.YES_NO_OPTION);
             if (opcion == JOptionPane.YES_OPTION) {
                 String temporal = servicio.restablecerPassword(codigoSeleccionado);
-                // Campo de solo lectura para que el administrador pueda copiarla.
                 JTextField campo = new JTextField(temporal);
                 campo.setEditable(false);
                 JOptionPane.showMessageDialog(this,

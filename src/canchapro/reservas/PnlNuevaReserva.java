@@ -33,14 +33,6 @@ import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 
-/**
- * Asistente de nueva reserva, siguiendo el flujo del enunciado:
- * 1 cliente → 2-4 fecha, horario y consulta → 5 cancha disponible →
- * 6 servicios → 7 resumen con total calculado → 8 pago inicial → 9 confirmar.
- *
- * La pantalla no calcula precios ni decide disponibilidad: todo lo hace
- * {@link ReservaServicio}.
- */
 // POO - Herencia: extiende JPanel. POO - Polimorfismo: implementa Refrescable.
 // POO - Relaciones: usa los servicios de reservas, disponibilidad, clientes y servicios adicionales.
 public class PnlNuevaReserva extends javax.swing.JPanel implements Refrescable {
@@ -56,7 +48,6 @@ public class PnlNuevaReserva extends javax.swing.JPanel implements Refrescable {
     private Consumer<Reserva> alCrearReserva = r -> { };
 
     private Cliente cliente;
-    /** Solicitud de la última consulta; null si hay que volver a consultar. */
     private SolicitudDisponibilidad solicitudConsultada;
     private ReservaBorrador borrador;
     private boolean cargando;
@@ -94,7 +85,6 @@ public class PnlNuevaReserva extends javax.swing.JPanel implements Refrescable {
         modeloServicios.addTableModelListener(e -> actualizarResumen());
         modeloServicios.setServicios(servicioAdicionalServicio.listarActivos());
 
-        // Cambiar fecha, hora, duración o tipo invalida la consulta anterior.
         spnFecha.addChangeListener(e -> invalidarConsulta());
         ActionListener invalidar = e -> invalidarConsulta();
         cboHora.addActionListener(invalidar);
@@ -104,15 +94,10 @@ public class PnlNuevaReserva extends javax.swing.JPanel implements Refrescable {
         actualizarResumen();
     }
 
-    /** Acción a ejecutar después de crear una reserva (por ejemplo, refrescar el listado). */
     public void setAlCrearReserva(Consumer<Reserva> accion) {
         this.alCrearReserva = accion;
     }
 
-    /**
-     * Llena el formulario con un horario y una cancha elegidos desde la
-     * pantalla de Disponibilidad.
-     */
     public void precargar(SolicitudDisponibilidad solicitud, Cancha cancha) {
         cargando = true;
         SelectorFecha.establecer(spnFecha, solicitud.fecha());
@@ -130,13 +115,10 @@ public class PnlNuevaReserva extends javax.swing.JPanel implements Refrescable {
 
     @Override
     public void refrescar() {
-        // Solo se recarga el catálogo si el usuario no ha elegido servicios.
         if (!modeloServicios.haySeleccionados()) {
             modeloServicios.setServicios(servicioAdicionalServicio.listarActivos());
         }
     }
-
-    // --- Pasos del asistente ---
 
     private void seleccionarCliente() {
         DlgBuscarCliente.seleccionar(SwingUtilities.getWindowAncestor(this), clienteServicio).ifPresent(c -> {
@@ -187,7 +169,6 @@ public class PnlNuevaReserva extends javax.swing.JPanel implements Refrescable {
         return fila < 0 ? null : modeloCanchas.getResultado(fila).cancha();
     }
 
-    /** Recalcula el resumen y el total cada vez que cambia algún paso. */
     private void actualizarResumen() {
         if (cargando) {
             return;
@@ -231,7 +212,6 @@ public class PnlNuevaReserva extends javax.swing.JPanel implements Refrescable {
             alCrearReserva.accept(reserva);
         } catch (CanchaProException e) {
             mostrarAdvertencia(e.getMessage());
-            // La disponibilidad pudo cambiar: se vuelve a consultar.
             if (solicitudConsultada != null) {
                 consultar();
             }

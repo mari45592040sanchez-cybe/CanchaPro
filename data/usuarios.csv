@@ -1,2 +1,3 @@
 codigo;rol;nombre;telefono;correo;username;passwordHash;salt;activo;debeCambiarPassword;modulos
 USR-001;ADMINISTRADOR;Administrador;;;admin;YC8vu3RdS24ZwBwCVxagAAzS/r9fvZhublqI89ZfsYE=;0NcLHDvkjPQonCi0ihsUOQ==;true;false;
+USR-002;EMPLEADO;Maria solares;41227266;maria@gamil.com;maria;h5Tfnl6U23WLoCpCxxIMpn0pF5eirTy1QSVHNpP3ngM=;t/6ZjuAW8uTHYCe38A1aPg==;true;true;RESERVAS|PAGOS|CLIENTES|CANCHAS|TARIFAS|SERVICIOS|TIENDA

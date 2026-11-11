@@ -7,9 +7,6 @@ import canchapro.reservas.ReservaServicio;
 import canchapro.util.FormatoFecha;
 import java.math.BigDecimal;
 
-/**
- * Historial de reservas canceladas con motivo, responsable y lo que se había pagado.
- */
 // POO - Herencia: hereda de ReporteBase las funciones comunes de los reportes.
 // POO - Polimorfismo: sobrescribe getNombre(), filtrosAplicables() y generar().
 public class ReporteReservasCanceladas extends ReporteBase {

@@ -5,10 +5,6 @@ import java.awt.BorderLayout;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
-/**
- * Módulo Tienda / Cafetería: pestañas "Punto de venta" y "Productos".
- * Solo contiene las dos pantallas diseñadas, por eso no tiene formulario propio.
- */
 // POO - Herencia: extiende JPanel. POO - Relaciones (composición): TIENE las pestañas Punto de venta y Productos.
 public class PnlModuloTienda extends JPanel implements Refrescable {
 
@@ -22,7 +18,6 @@ public class PnlModuloTienda extends JPanel implements Refrescable {
         JTabbedPane pestanas = new JTabbedPane();
         pestanas.addTab("Punto de venta", pnlVentas);
         pestanas.addTab("Productos", pnlProductos);
-        // Al cambiar de pestaña se actualiza la existencia mostrada.
         pestanas.addChangeListener(e -> refrescar());
         add(pestanas, BorderLayout.CENTER);
     }

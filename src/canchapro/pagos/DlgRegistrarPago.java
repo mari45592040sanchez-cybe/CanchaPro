@@ -12,12 +12,6 @@ import java.util.Optional;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 
-/**
- * Registra un abono para una reserva. Las reglas (monto positivo, no mayor
- * al saldo, reserva no cancelada) las valida {@link ReservaServicio}.
- *
- * Uso: {@code DlgRegistrarPago.registrar(ventana, servicio, reserva, usuario, nombreNegocio)}
- */
 // POO - Herencia: extiende JDialog de Swing.
 // POO - Relaciones: usa ReservaServicio, que valida el pago dentro de la reserva.
 public class DlgRegistrarPago extends javax.swing.JDialog {
@@ -48,9 +42,6 @@ public class DlgRegistrarPago extends javax.swing.JDialog {
         setLocationRelativeTo(parent);
     }
 
-    /**
-     * Abre el diálogo y devuelve el pago registrado, o vacío si se canceló.
-     */
     public static Optional<Pago> registrar(Window parent, ReservaServicio servicio, Reserva reserva, Usuario usuario,
             String nombreNegocio) {
         DlgRegistrarPago dialogo = new DlgRegistrarPago(parent, servicio, reserva, usuario, nombreNegocio);

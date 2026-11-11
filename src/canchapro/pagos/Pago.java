@@ -9,10 +9,6 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/**
- * Pago (anticipo o abono) recibido para una reserva. Es inmutable: un pago
- * registrado no se modifica.
- */
 // POO - Polimorfismo (interfaz): implementa Identificable para poder guardarse en un RepositorioCsv.
 // POO - Encapsulamiento: clase final e inmutable; un pago registrado no se modifica.
 // POO - Relaciones: el pago conoce el código de su reserva y al usuario que lo recibió.

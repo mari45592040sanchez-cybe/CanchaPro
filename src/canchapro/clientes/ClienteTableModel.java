@@ -3,9 +3,6 @@ package canchapro.clientes;
 import canchapro.util.FormatoFecha;
 import javax.swing.table.AbstractTableModel;
 
-/**
- * Modelo de la tabla de clientes.
- */
 // POO - Herencia: extiende AbstractTableModel de Swing.
 // POO - Polimorfismo: la JTable llama a getRowCount(), getValueAt()... sin saber que es un modelo de clientes.
 public class ClienteTableModel extends AbstractTableModel {

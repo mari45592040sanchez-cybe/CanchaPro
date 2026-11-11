@@ -12,10 +12,6 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.Optional;
 
-/**
- * Reglas de negocio de clientes: búsqueda, registro sin duplicados,
- * edición y activación/desactivación.
- */
 // POO - Responsabilidad: aquí están las reglas de negocio de clientes; la pantalla no valida
 // ni guarda directamente, y el repositorio solo guarda.
 public class ClienteServicio {
@@ -31,13 +27,6 @@ public class ClienteServicio {
         this.repositorio = repositorio;
     }
 
-    /**
-     * Busca clientes cuyo código, nombre o teléfono contengan todas las
-     * palabras del texto (sin distinguir mayúsculas ni tildes).
-     * Un texto vacío devuelve todos.
-     *
-     * @param incluirInactivos false para listar solo clientes activos
-     */
     public Cliente[] buscar(String texto, boolean incluirInactivos) {
         boolean sinFiltro = texto == null || texto.isBlank();
         Cliente[] todos = repositorio.listar();
@@ -69,16 +58,10 @@ public class ClienteServicio {
                 .orElseThrow(() -> new EntidadNoEncontradaException("No existe el cliente " + codigo));
     }
 
-    /** Cliente (activo o inactivo) que ya usa ese teléfono, si existe. */
     public Optional<Cliente> buscarPorTelefono(String telefono) {
         return repositorio.buscarPorTelefono(telefono);
     }
 
-    /**
-     * Registra un cliente nuevo con fecha de registro de hoy.
-     *
-     * @throws ReglaNegocioException si el teléfono ya pertenece a otro cliente
-     */
     public Cliente registrar(String nombre, String telefono, String correo) {
         String telefonoValido = Persona.validarTelefono(telefono, true);
         validarTelefonoDisponible(telefonoValido, null);
@@ -90,10 +73,6 @@ public class ClienteServicio {
         return cliente;
     }
 
-    /**
-     * Actualiza nombre, teléfono y correo. El código y la fecha de registro
-     * no cambian. Se valida todo antes de modificar el objeto.
-     */
     public Cliente actualizar(String codigo, String nombre, String telefono, String correo) {
         Cliente cliente = obtener(codigo);
 
@@ -111,10 +90,6 @@ public class ClienteServicio {
         return cliente;
     }
 
-    /**
-     * Activa o desactiva un cliente. Un cliente inactivo no aparece al
-     * crear reservas o ventas, pero conserva su historial.
-     */
     public void cambiarEstado(String codigo, boolean activo) {
         Cliente cliente = obtener(codigo);
         if (cliente.isActivo() == activo) {
@@ -125,11 +100,6 @@ public class ClienteServicio {
         repositorio.guardar();
     }
 
-    /**
-     * Regla anti-duplicados: el teléfono identifica al cliente, por lo que
-     * no puede repetirse. Si pertenece a un cliente inactivo, se sugiere
-     * reactivarlo en lugar de crear otro.
-     */
     private void validarTelefonoDisponible(String telefono, String codigoPropio) {
         repositorio.buscarPorTelefono(telefono)
                 .filter(existente -> !existente.getCodigo().equals(codigoPropio))

@@ -4,10 +4,6 @@ import canchapro.usuarios.Modulo;
 import canchapro.usuarios.Usuario;
 import java.time.LocalDateTime;
 
-/**
- * Usuario autenticado y momento en que inició sesión.
- * Se pasa por constructor a las pantallas que lo necesitan.
- */
 // POO - Relaciones (asociación): la sesión TIENE el usuario que inició sesión.
 public class Sesion {
 

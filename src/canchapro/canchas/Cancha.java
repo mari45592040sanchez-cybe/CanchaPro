@@ -7,15 +7,10 @@ import canchapro.util.excepciones.DatosInvalidosException;
 import java.time.Duration;
 import java.time.LocalTime;
 
-/**
- * Cancha del complejo. El precio no se guarda aquí: se calcula con la
- * configuración de tarifas según el tipo de cancha, la fecha y la hora.
- */
 // POO - Polimorfismo (interfaz): implementa Identificable para poder guardarse en un RepositorioCsv.
 public class Cancha implements Identificable {
 
     public static final int CAPACIDAD_MAXIMA = 50;
-    /** Las horas de apertura y cierre van en bloques de 30 minutos, igual que las reservas. */
     public static final int MINUTOS_BLOQUE = BloquesHorario.MINUTOS_BLOQUE;
     private static final Duration HORARIO_MINIMO = Duration.ofHours(1);
 
@@ -36,10 +31,6 @@ public class Cancha implements Identificable {
         actualizarDatos(nombre, tipo, capacidad, estado, horaApertura, horaCierre, descripcion);
     }
 
-    /**
-     * Valida todos los datos y, solo si todos son correctos, los asigna.
-     * Así la cancha nunca queda modificada a medias.
-     */
     public final void actualizarDatos(String nombre, TipoCancha tipo, int capacidad, EstadoCancha estado,
             LocalTime horaApertura, LocalTime horaCierre, String descripcion) {
         String nombreValido = Validador.texto(nombre, 3, 40, "El nombre de la cancha");
@@ -67,10 +58,6 @@ public class Cancha implements Identificable {
         }
     }
 
-    /**
-     * El horario debe abrir antes de cerrar, durar al menos una hora y usar
-     * bloques de 30 minutos (08:00, 08:30, …).
-     */
     public static void validarHorario(LocalTime apertura, LocalTime cierre) {
         if (apertura == null || cierre == null) {
             throw new DatosInvalidosException("Las horas de apertura y cierre son obligatorias.");
@@ -90,7 +77,6 @@ public class Cancha implements Identificable {
         return hora.getSecond() == 0 && hora.getNano() == 0 && hora.getMinute() % MINUTOS_BLOQUE == 0;
     }
 
-    /** Indica si el intervalo [inicio, fin] cabe dentro del horario de la cancha. */
     public boolean dentroDeHorario(LocalTime inicio, LocalTime fin) {
         return inicio.isBefore(fin) && !inicio.isBefore(horaApertura) && !fin.isAfter(horaCierre);
     }
@@ -132,7 +118,6 @@ public class Cancha implements Identificable {
         return descripcion;
     }
 
-    /** "08:00 - 23:00" */
     public String getHorario() {
         return horaApertura + " - " + horaCierre;
     }

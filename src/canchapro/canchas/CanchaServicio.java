@@ -8,9 +8,6 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/**
- * Reglas de negocio de las canchas.
- */
 // POO - Responsabilidad: reglas de negocio de canchas (nombre único, datos iniciales, estados).
 public class CanchaServicio {
 
@@ -25,12 +22,6 @@ public class CanchaServicio {
         this.repositorio = repositorio;
     }
 
-    /**
-     * Primer arranque: si no hay canchas, crea las tres del caso de estudio
-     * del Complejo Deportivo "La 10".
-     *
-     * @return true si se crearon
-     */
     public boolean asegurarDatosIniciales() {
         if (!repositorio.estaVacio()) {
             return false;
@@ -45,7 +36,6 @@ public class CanchaServicio {
         return true;
     }
 
-    /** Todas las canchas ordenadas por código. */
     public Cancha[] listar() {
         // POO - Colecciones: el repositorio entrega una copia del arreglo; se ordena sin afectar el original.
         Cancha[] canchas = repositorio.listar();
@@ -53,9 +43,6 @@ public class CanchaServicio {
         return canchas;
     }
 
-    /**
-     * @param tipo tipo buscado, o null para todas
-     */
     public Cancha[] listarPorTipo(TipoCancha tipo) {
         Cancha[] todas = listar();
         Cancha[] encontradas = new Cancha[todas.length];
@@ -69,7 +56,6 @@ public class CanchaServicio {
         return Arrays.copyOf(encontradas, cantidad);
     }
 
-    /** Canchas que pueden recibir reservas (estado DISPONIBLE). */
     public Cancha[] listarReservables() {
         Cancha[] todas = listar();
         Cancha[] encontradas = new Cancha[todas.length];
@@ -88,9 +74,6 @@ public class CanchaServicio {
                 .orElseThrow(() -> new EntidadNoEncontradaException("No existe la cancha " + codigo));
     }
 
-    /**
-     * Registra una cancha nueva en estado DISPONIBLE con código C01, C02, …
-     */
     public Cancha registrar(String nombre, TipoCancha tipo, int capacidad,
             LocalTime apertura, LocalTime cierre, String descripcion) {
         validarNombreDisponible(nombre, null);
@@ -102,10 +85,6 @@ public class CanchaServicio {
         return cancha;
     }
 
-    /**
-     * Actualiza los datos de la cancha, incluido su estado. Una cancha en
-     * MANTENIMIENTO o INACTIVA deja de aparecer como disponible de inmediato.
-     */
     public Cancha actualizar(String codigo, String nombre, TipoCancha tipo, int capacidad,
             EstadoCancha estado, LocalTime apertura, LocalTime cierre, String descripcion) {
         Cancha cancha = obtener(codigo);
@@ -116,7 +95,6 @@ public class CanchaServicio {
         return cancha;
     }
 
-    /** No puede haber dos canchas con el mismo nombre (sin importar mayúsculas ni tildes). */
     private void validarNombreDisponible(String nombre, String codigoPropio) {
         String buscado = Texto.normalizar(nombre);
         for (Cancha c : repositorio.listar()) {

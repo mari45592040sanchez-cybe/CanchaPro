@@ -4,10 +4,6 @@ import canchapro.persistencia.CamposCsv;
 import canchapro.persistencia.RepositorioCsv;
 import java.nio.file.Path;
 
-/**
- * Productos guardados en productos.csv:
- * codigo;nombre;categoria;precio;existencia;stockMinimo;activo
- */
 // POO - Herencia / Reutilización: hereda de RepositorioCsv; aquí solo se define el formato de productos.csv.
 // POO - Polimorfismo: los métodos con @Override implementan los métodos abstractos de RepositorioCsv.
 public class ProductoRepositorio extends RepositorioCsv<Producto> {
@@ -17,8 +13,6 @@ public class ProductoRepositorio extends RepositorioCsv<Producto> {
     public ProductoRepositorio(Path carpetaDatos) {
         super(carpetaDatos.resolve(ARCHIVO));
     }
-
-    // --- Formato del archivo ---
 
     @Override
     protected String encabezado() {

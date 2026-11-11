@@ -10,10 +10,6 @@ import javax.swing.JOptionPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 
-/**
- * Configuración del sistema (solo administrador): parámetros del negocio,
- * módulo Tienda, recarga de archivos y bitácora de errores.
- */
 // POO - Herencia: la pantalla extiende JPanel de Swing.
 public class PnlConfiguracion extends javax.swing.JPanel {
 
@@ -29,10 +25,32 @@ public class PnlConfiguracion extends javax.swing.JPanel {
         txtNombreNegocio.setText(c.getNombreNegocio());
         spnAnticipo.setModel(new SpinnerNumberModel(c.getAnticipoMinimoPorcentaje(), 0, 100, 5));
         chkModuloTienda.setSelected(c.isModuloTienda());
+        chkModuloTienda.addActionListener(e -> pedirCarneTienda());
         lblRutaDatosValor.setText(servicio.getCarpetaDatos().toString());
         lblArchivoConfigValor.setText(servicio.getArchivoConfiguracion().toString());
         btnAbrirCarpeta.setVisible(Desktop.isDesktopSupported());
         mostrarBitacora();
+    }
+
+    // POO - Método: al marcar o desmarcar el check del módulo Tienda se pide el carné;
+    // si es inválido (o se cancela), el check vuelve a como estaba.
+    private void pedirCarneTienda() {
+        boolean habilitar = chkModuloTienda.isSelected();
+        String carne = JOptionPane.showInputDialog(this,
+                "Ingrese el carné para " + (habilitar ? "habilitar" : "deshabilitar")
+                + " el módulo Tienda / Cafetería:",
+                "Módulo Tienda / Cafetería", JOptionPane.QUESTION_MESSAGE);
+        if (carne == null) {
+            chkModuloTienda.setSelected(!habilitar);
+            return;
+        }
+        try {
+            servicio.validarCarneTienda(carne);
+        } catch (CanchaProException e) {
+            chkModuloTienda.setSelected(!habilitar);
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Módulo Tienda / Cafetería",
+                    JOptionPane.WARNING_MESSAGE);
+        }
     }
 
     private void guardar() {
@@ -53,7 +71,6 @@ public class PnlConfiguracion extends javax.swing.JPanel {
         if (opcion != JOptionPane.YES_OPTION) {
             return;
         }
-        // La ventana se obtiene antes: al recargar, la pantalla principal vuelve a crear este panel.
         Window ventana = SwingUtilities.getWindowAncestor(this);
         try {
             RegistroErroresCarga registro = servicio.recargarArchivos();
