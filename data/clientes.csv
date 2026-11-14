@@ -1,2 +1,4 @@
 codigo;nombre;telefono;correo;fechaRegistro;activo
 CLI-0001;Juanita;34249898;ja@gmail.com;2026-10-22;true
+CLI-0002;Maria;41335689;ma@gmail.com;2026-11-13;true
+CLI-0003;Dayana;33227466;da@gmail.com;2026-11-13;true

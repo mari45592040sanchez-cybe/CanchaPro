@@ -103,13 +103,15 @@ public class TarifaServicio {
         tramos[cantidad] = crearTramo(inicioTramo, fin, tarifaTramo);
         cantidad++;
 
+        //tarifa
         BigDecimal total = BigDecimal.ZERO;
         for (int i = 0; i < cantidad; i++) {
             total = total.add(tramos[i].subtotal());
         }
         return new DetallePrecio(Arrays.copyOf(tramos, cantidad), total.setScale(2, RoundingMode.HALF_UP));
     }
-
+//fin
+    
     private static TramoTarifa crearTramo(LocalTime desde, LocalTime hasta, Tarifa tarifa) {
         int minutos = (int) Duration.between(desde, hasta).toMinutes();
         BigDecimal subtotal = tarifa.getPrecioHora()

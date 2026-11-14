@@ -1,1 +1,2 @@
-codigo;fechaHora;codigoCliente;metodoPago;codigoUsuario;estado
+codigo;fechaHora;codigoCliente;metodoPago;codigoUsuario;estado;codigoReserva
+VTA-00001;2026-11-13T21:59:57;CLI-0001;;USR-001;REGISTRADA;RES-00004
